@@ -1194,7 +1194,7 @@ dev = [
 [[package]]
 name = "lyra-sdk"
 version = "0.1.0"
-source = { git = "https://github.com/RodolfoFigueroa/lyra?subdirectory=packages%2Flyra_sdk&rev=dev#8668e293ee3e2c3b98c65df6b6d73482b52e64ea" }
+source = { git = "https://github.com/RodolfoFigueroa/lyra?subdirectory=packages%2Flyra_sdk&rev=dev#e174853fb5b3957e50b227e06dc7dc8a79fffa4d" }
 dependencies = [
     { name = "pydantic" },
 ]
@@ -1202,7 +1202,7 @@ dependencies = [
 [[package]]
 name = "lyra-utils"
 version = "0.1.0"
-source = { git = "https://github.com/RodolfoFigueroa/lyra?subdirectory=packages%2Flyra_utils&rev=dev#8668e293ee3e2c3b98c65df6b6d73482b52e64ea" }
+source = { git = "https://github.com/RodolfoFigueroa/lyra?subdirectory=packages%2Flyra_utils&rev=dev#e174853fb5b3957e50b227e06dc7dc8a79fffa4d" }
 dependencies = [
     { name = "earthengine-api" },
     { name = "geemap" },
