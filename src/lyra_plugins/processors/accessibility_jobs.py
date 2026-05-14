@@ -48,7 +48,7 @@ def calculate_prepare(
         ymin,
         xmax,
         ymax,
-        bounds_crs="EPSG:6372",
+        bounds_crs=wanted_crs,
         network_type="drive",
     )
     net_accessibility_walk = load_accessibility_net_from_bounds(
@@ -56,7 +56,7 @@ def calculate_prepare(
         ymin,
         xmax,
         ymax,
-        bounds_crs="EPSG:6372",
+        bounds_crs=wanted_crs,
         network_type="walk",
     )
 
