@@ -125,6 +125,6 @@ AMENITIES_DICT = {
 }
 
 
-WALK_SPEED_KPH = 5  # Average walking speed in kilometers per hour
+WALK_SPEED_KPH = 6  # Average walking speed in kilometers per hour
 
 # Test
