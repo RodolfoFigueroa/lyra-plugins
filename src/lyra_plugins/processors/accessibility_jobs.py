@@ -3,18 +3,13 @@ from typing import Literal
 import geopandas as gpd
 import pandana as pdna
 import pandas as pd
+from lyra.sdk import LyraDB
 from lyra.sdk.types import ExplicitLocationAPI
 from lyra.utils.geometry import convert_geojson_to_gdf
-from lyra.utils.load.db import (
-    load_denue_from_bounds,
-    load_mesh_from_bounds,
-)
-from lyra.utils.load.osm import (
-    load_accessibility_net_from_bounds,
-)
 
 from lyra_plugins.constants import PER_OCU_TO_NUM_WORKERS_MAP
 from lyra_plugins.functions.base import get_geometries_osmid
+from lyra_plugins.functions.osm import load_accessibility_net_from_bounds
 from lyra_plugins.models.accessibility_jobs import JobGroupModel
 
 METRIC_DESCRIPTION: str = (
@@ -32,6 +27,7 @@ ITEMS_DEFAULT = {
 
 def calculate_prepare(
     data: ExplicitLocationAPI,
+    db: LyraDB,
     year: Literal[2020, 2021, 2022, 2023, 2024, 2025] | None = None,
 ) -> dict:
     wanted_crs = "EPSG:6372"
@@ -61,7 +57,7 @@ def calculate_prepare(
     )
 
     df_denue = (
-        load_denue_from_bounds(xmin, ymin, xmax, ymax, year=year)
+        db.load_denue_from_bounds(xmin, ymin, xmax, ymax, year=year)
         .to_crs(wanted_crs)
         .assign(num_workers=lambda x: x["per_ocu"].map(PER_OCU_TO_NUM_WORKERS_MAP))
         .drop(columns=["per_ocu"])
@@ -71,7 +67,7 @@ def calculate_prepare(
         )
     )
 
-    df_mesh = load_mesh_from_bounds(xmin, ymin, xmax, ymax)[["geometry"]].assign(
+    df_mesh = db.load_mesh_from_bounds(xmin, ymin, xmax, ymax)[["geometry"]].assign(
         osmid_drive=lambda df: get_geometries_osmid(
             df,  # ty: ignore[invalid-argument-type]
             net_accessibility_drive,

@@ -4,21 +4,17 @@ import geopandas as gpd
 import numpy as np
 import pandana as pdna
 import pandas as pd
+from lyra.sdk import LyraDB
 from lyra.sdk.models import GeoJSON
 from lyra.sdk.types import ExplicitLocationAPI
 from lyra.utils.geometry import convert_geojson_to_gdf
-from lyra.utils.load.db import (
-    load_census_from_bounds,
-    load_denue_from_bounds,
-    load_mesh_from_bounds,
-)
-from lyra.utils.load.osm import (
-    load_accessibility_net_from_bounds,
-    load_osm_features_from_bounds,
-)
 
 from lyra_plugins.constants import AMENITIES_DICT, PER_OCU_TO_NUM_WORKERS_MAP
 from lyra_plugins.functions.base import get_geometries_osmid
+from lyra_plugins.functions.osm import (
+    load_accessibility_net_from_bounds,
+    load_osm_features_from_bounds,
+)
 from lyra_plugins.models.accessibility_services import AmenityGroupModel
 
 
@@ -219,6 +215,7 @@ ITEMS_DEFAULT = {
 
 def calculate_prepare(
     data: ExplicitLocationAPI,
+    db: LyraDB,
     data_public: GeoJSON | None = None,
     year: Literal[2020, 2021, 2022, 2023, 2024, 2025] | None = None,
 ) -> dict:
@@ -247,12 +244,12 @@ def calculate_prepare(
         )
 
     df_denue = process_denue_amenities(
-        load_denue_from_bounds(xmin, ymin, xmax, ymax, year=year),
+        db.load_denue_from_bounds(xmin, ymin, xmax, ymax, year=year),
     )
 
     df_amenities = concat_amenities(df_denue, df_public_spaces)
 
-    df_agebs = load_census_from_bounds(
+    df_agebs = db.load_census_from_bounds(
         xmin,
         ymin,
         xmax,
@@ -270,7 +267,7 @@ def calculate_prepare(
         ],
     )
 
-    df_mesh = load_mesh_from_bounds(xmin, ymin, xmax, ymax, level=9).pipe(
+    df_mesh = db.load_mesh_from_bounds(xmin, ymin, xmax, ymax, level=9).pipe(
         merge_mesh_and_census,
         agebs=df_agebs,
     )
