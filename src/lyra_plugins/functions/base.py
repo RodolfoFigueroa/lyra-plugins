@@ -1,5 +1,5 @@
 import geopandas as gpd
-import pandana as pdna
+import pandarm as pdna
 import pandas as pd
 
 

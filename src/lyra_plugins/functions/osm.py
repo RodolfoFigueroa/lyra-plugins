@@ -3,7 +3,7 @@ from typing import Literal
 import geopandas as gpd
 import networkx as nx
 import osmnx as ox
-import pandana as pdna
+import pandarm as pdna
 from pyproj import CRS, Transformer
 
 from lyra_plugins.constants import WALK_SPEED_KPH

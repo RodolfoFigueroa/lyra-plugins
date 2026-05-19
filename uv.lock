@@ -1165,33 +1165,42 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "earthengine-api" },
+    { name = "geopandas" },
     { name = "lyra-sdk" },
     { name = "lyra-utils" },
-    { name = "numpy" },
-    { name = "pandana" },
+    { name = "pandarm" },
+    { name = "pandas", version = "2.3.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.14'" },
+    { name = "pandas", version = "3.0.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.14'" },
 ]
 
 [package.dev-dependencies]
 dev = [
+    { name = "pandas-stubs" },
     { name = "pre-commit" },
+    { name = "types-geopandas" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "earthengine-api", specifier = ">=1.7.25" },
+    { name = "geopandas", specifier = ">=1.1.3" },
     { name = "lyra-sdk", git = "https://github.com/RodolfoFigueroa/lyra?subdirectory=packages%2Flyra_sdk&rev=dev" },
     { name = "lyra-utils", git = "https://github.com/RodolfoFigueroa/lyra?subdirectory=packages%2Flyra_utils&rev=dev" },
-    { name = "numpy", specifier = "<2" },
-    { name = "pandana", specifier = ">=0.7" },
+    { name = "pandarm", specifier = ">=0.0.5" },
+    { name = "pandas", specifier = ">=2.3.3" },
 ]
 
 [package.metadata.requires-dev]
-dev = [{ name = "pre-commit", specifier = ">=4.6.0" }]
+dev = [
+    { name = "pandas-stubs", specifier = ">=3.0.0.260204" },
+    { name = "pre-commit", specifier = ">=4.6.0" },
+    { name = "types-geopandas", specifier = ">=1.1.3.20260518" },
+]
 
 [[package]]
 name = "lyra-sdk"
 version = "0.1.0"
-source = { git = "https://github.com/RodolfoFigueroa/lyra?subdirectory=packages%2Flyra_sdk&rev=dev#dd0703ee6dbdc01650761ba4ebe7beb01456bd1b" }
+source = { git = "https://github.com/RodolfoFigueroa/lyra?subdirectory=packages%2Flyra_sdk&rev=dev#49b639af4ff2206b8f1de482d075753634f8abdf" }
 dependencies = [
     { name = "pydantic" },
 ]
@@ -1199,7 +1208,7 @@ dependencies = [
 [[package]]
 name = "lyra-utils"
 version = "0.1.0"
-source = { git = "https://github.com/RodolfoFigueroa/lyra?subdirectory=packages%2Flyra_utils&rev=dev#dd0703ee6dbdc01650761ba4ebe7beb01456bd1b" }
+source = { git = "https://github.com/RodolfoFigueroa/lyra?subdirectory=packages%2Flyra_utils&rev=dev#49b639af4ff2206b8f1de482d075753634f8abdf" }
 dependencies = [
     { name = "earthengine-api" },
     { name = "geemap" },
@@ -1207,7 +1216,6 @@ dependencies = [
     { name = "lyra-sdk" },
     { name = "networkx" },
     { name = "osmnx" },
-    { name = "pandana" },
     { name = "pandas", version = "2.3.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.14'" },
     { name = "pandas", version = "3.0.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.14'" },
     { name = "shapely" },
@@ -1611,23 +1619,39 @@ wheels = [
 ]
 
 [[package]]
-name = "pandana"
-version = "0.7"
+name = "pandarm"
+version = "0.0.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
+    { name = "geopandas" },
     { name = "numpy" },
     { name = "pandas", version = "2.3.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.14'" },
     { name = "pandas", version = "3.0.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.14'" },
-    { name = "requests" },
     { name = "scikit-learn" },
     { name = "tables" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/6d/8a/5b2fad57442322a48900d6bf63f0034998d99cc55facedf7a5b5e0f97063/pandana-0.7.tar.gz", hash = "sha256:416a5998ba9ae64fe546186f430e705b8a59bb5ff71c195fd64d734f9c70e795", size = 295028, upload-time = "2023-07-26T15:41:34.687Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/11/53/ebae3c1b05312c183459b3736c74df70f29239369f5e24ec1ae67d16f0fa/pandarm-0.0.5.tar.gz", hash = "sha256:8aa54a49e2f46be1be342942b13c5731678da38388beae37d10e100fb30c4fbe", size = 13529714, upload-time = "2026-02-22T01:53:44.778Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/dd/b3/b0ab43a87f2bd411b5e8f3fb8704efb0bf7b37959c8714fda42c42060bc4/pandana-0.7-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:32f87b79cf5ca0f7976c0e14be6947be7fa2b6ee00074e70e1400a97772e4d8e", size = 160460, upload-time = "2023-07-26T15:41:16.958Z" },
-    { url = "https://files.pythonhosted.org/packages/f6/e3/ba33c20b84df2b769eabafa9c133bd54bfef33dbc77b38bbabf9fab88f4a/pandana-0.7-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:daa8c46eaa5e11d58a785bd89f2c677cfa7695f0a93ea89f466ab187fd48eadd", size = 150917, upload-time = "2023-07-26T15:41:18.32Z" },
-    { url = "https://files.pythonhosted.org/packages/99/fc/053a274d6e1f42da63e893b8822e7befc3fa3c8d222db93d51d6079f9ef1/pandana-0.7-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:12458e0251f1beed38418dc035937438ba170e070673067ad9cd968c4ba74106", size = 2063773, upload-time = "2023-07-26T15:41:19.622Z" },
-    { url = "https://files.pythonhosted.org/packages/1c/3c/e47937f310d227417781371a5f124159019a055be00afecc1acc9ee71c31/pandana-0.7-cp311-cp311-win_amd64.whl", hash = "sha256:389448a55c4186355574e4716865813c0ad07fd28ba9620b99160cb431174e9b", size = 142035, upload-time = "2023-07-26T15:41:21.652Z" },
+    { url = "https://files.pythonhosted.org/packages/af/6d/3d5937d6607050e1a21559aba4a5879b3ca03780119b1098d7a96f262d45/pandarm-0.0.5-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:3088071cf0ae7e9c4f53312351f4903b80893057a2d6a33e8e1125220ed4981c", size = 578272, upload-time = "2026-02-22T01:48:57.153Z" },
+    { url = "https://files.pythonhosted.org/packages/32/5f/b6cafb0353bd27f81be3efda432bd8c4a400f6be88d5f0a03e7012fd40b8/pandarm-0.0.5-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:906c2eedc078727d7459975c9992677e33b735322cca013857f47d783090bff9", size = 2215421, upload-time = "2026-02-22T01:53:32.658Z" },
+    { url = "https://files.pythonhosted.org/packages/c9/df/f51f5b0c2ded6a3afbea43e5f32b417f471771d8cef010e0598f67afe8b0/pandarm-0.0.5-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:df018a77d1910ea265f2fb8fe0759a47cfaead2c18e16d9a38ef6184d59ecb5c", size = 3262718, upload-time = "2026-02-22T01:53:34.171Z" },
+    { url = "https://files.pythonhosted.org/packages/4b/8c/982119bc5abf80b576b82304e25af042df44057e7bbcd5f1de7ed9161c4f/pandarm-0.0.5-cp311-cp311-win32.whl", hash = "sha256:744d089958a53287d3013d12f8377eed1ef91299a4e8083cb71a7ae99242614c", size = 177207, upload-time = "2026-02-22T01:59:28.273Z" },
+    { url = "https://files.pythonhosted.org/packages/25/d4/097c5da9e65fef8aacd17db8f52d86e3f07e229d2badae3d1cb4d4cf78d5/pandarm-0.0.5-cp311-cp311-win_amd64.whl", hash = "sha256:d185f59aaac3699693378b6ffd430829bf4ef07ae7ce59c4c1e9803e9d7f3527", size = 189087, upload-time = "2026-02-22T01:59:27.432Z" },
+    { url = "https://files.pythonhosted.org/packages/37/90/f2d746532aa90989c06588f52b2c6c8a17f26fb6ca5900f6707af008c7ff/pandarm-0.0.5-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:18fdc68ef8a1d92dc4bd7f025a8fd71c6915703a23acbdf1551f78f990c095a9", size = 579494, upload-time = "2026-02-22T01:48:58.288Z" },
+    { url = "https://files.pythonhosted.org/packages/f7/62/c9d2d313aeb8c3b91d0a8d48387574a02ea853537c1b2c04776a34a280cb/pandarm-0.0.5-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:0f067dec12c8f0651c8d4815e206d114d0e178cce7506c7610ec9693fad711c9", size = 2222594, upload-time = "2026-02-22T01:53:35.459Z" },
+    { url = "https://files.pythonhosted.org/packages/8e/50/69f687d15b1fd2a2e88fef47b80882fd38e4fa0ee91e2fdb47c8fbfc40bc/pandarm-0.0.5-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:4403052c708d6c0661d75aa76c1f99b1fa3a73ee930d19c38740aea372aa2db9", size = 3265155, upload-time = "2026-02-22T01:53:36.942Z" },
+    { url = "https://files.pythonhosted.org/packages/85/6d/224044a2c77792a4a113b6a5829b6aa64d8533ebcad66d1b449daadd62f6/pandarm-0.0.5-cp312-cp312-win32.whl", hash = "sha256:4c6e5d47929bcca2c9de674791af8f47ec955d9378328098c5a14f6e1b9d0bbf", size = 177427, upload-time = "2026-02-22T01:59:29.937Z" },
+    { url = "https://files.pythonhosted.org/packages/51/99/5d3fb59d85cbb4c5682f64fd194a85cd1afbf69e73e7830963b8b2082f8d/pandarm-0.0.5-cp312-cp312-win_amd64.whl", hash = "sha256:45c8eab007107226a62e7ff6125d4f571119c3003054cb93b50f1711d8440554", size = 188472, upload-time = "2026-02-22T01:59:29.116Z" },
+    { url = "https://files.pythonhosted.org/packages/92/90/f2bb132738cd1899be2fe1a1e651153761b4d93e3af2b90ae54e6be11b25/pandarm-0.0.5-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:51055ee747693f7f960e1fe4c097e48aa028636ece97bfff623a543b9cc81128", size = 579951, upload-time = "2026-02-22T01:48:59.232Z" },
+    { url = "https://files.pythonhosted.org/packages/ab/ce/f03fb47f2e7775394f441f6e62c7f0bb1bb833cf8291fc6d2865bc924541/pandarm-0.0.5-cp313-cp313-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:d901ea5cb2de5b885120e9aaeb998c7a94b6f7c6de445b46c441bcd32832bbb9", size = 2221430, upload-time = "2026-02-22T01:53:38.391Z" },
+    { url = "https://files.pythonhosted.org/packages/91/f2/c9be10cfcbf793bb1f70b8e0f8a0004b082237851f1a5882e590b2c752f2/pandarm-0.0.5-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:35e5653b63c319ece7e38ded76128388506b41f1d43163dff95bbad018fd2e6b", size = 3264094, upload-time = "2026-02-22T01:53:40.015Z" },
+    { url = "https://files.pythonhosted.org/packages/ff/88/872ff8ce27a494611dfdb3d512ddd2bf5fb18aa14d01bcbcb4fc1f56cbd0/pandarm-0.0.5-cp313-cp313-win32.whl", hash = "sha256:ab559438c0cfe2b7123362139a7488d4c9297cb20b797b054a4b5a344bbcf5eb", size = 177308, upload-time = "2026-02-22T01:59:31.809Z" },
+    { url = "https://files.pythonhosted.org/packages/fe/e6/aee08b6ba933adcdb6d53be331fd55446044d77a6ae7036790e6b3c63132/pandarm-0.0.5-cp313-cp313-win_amd64.whl", hash = "sha256:e711543a65e27aec4d59a77725e85dfd0464d8d8551b8c9c21674185ebcf4b69", size = 188582, upload-time = "2026-02-22T01:59:30.805Z" },
+    { url = "https://files.pythonhosted.org/packages/6a/ee/96a5fc9d25c7997ccbea91ae55b78b4e70375bdbeedfb56efe9ced5e0aeb/pandarm-0.0.5-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:6f9ecf573a658a8de118fad4faca7c472f77c1a032269969d33f30eb2a56013d", size = 580323, upload-time = "2026-02-22T01:49:00.513Z" },
+    { url = "https://files.pythonhosted.org/packages/44/75/a53ebfd118514db05f86d3502857038e08e5102f0150bb731e4c7938fadc/pandarm-0.0.5-cp314-cp314-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:68eed04445b317484676c6a63d0f55b14a656c7bcce5694c0568e61d00518e03", size = 2218842, upload-time = "2026-02-22T01:53:41.738Z" },
+    { url = "https://files.pythonhosted.org/packages/5b/c3/5c4ca71fded377330284813274ddcbef55d6b13fe4b43075302d89f9f4c2/pandarm-0.0.5-cp314-cp314-musllinux_1_2_x86_64.whl", hash = "sha256:9d86bc2cabd8c34dc6b33fb1a004d4d5ec35830462dbb46b12d3f134aa738071", size = 3261785, upload-time = "2026-02-22T01:53:42.915Z" },
+    { url = "https://files.pythonhosted.org/packages/3a/6b/ef5770b330c67d2aed60e1f68af73c12956a169362079353d8cab09d1c28/pandarm-0.0.5-cp314-cp314-win32.whl", hash = "sha256:15b82d6e140a1e1d63b686913b369731cd76ef772d603e3d7a1a974b69451dba", size = 180172, upload-time = "2026-02-22T01:59:33.612Z" },
+    { url = "https://files.pythonhosted.org/packages/6a/4f/86214ba080f088c4fd38badfd6d642087ab25e9c00a91bb155b25917a4af/pandarm-0.0.5-cp314-cp314-win_amd64.whl", hash = "sha256:e34200d0314f31cf29ccb3caf2b4c40e3a592cd66985bf043b32dbab8a9fa5a9", size = 192116, upload-time = "2026-02-22T01:59:32.637Z" },
 ]
 
 [[package]]
@@ -1755,6 +1779,18 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/31/89/8fc1c268969fac43688d65fd92e67df24bd128d53cb4d2eee534cd307399/pandas-3.0.3-cp314-cp314t-musllinux_1_2_x86_64.whl", hash = "sha256:9c39be2d709d01fa972a0cabc522389fceca4f3969332ba25a7d6c5802cf976a", size = 11828897, upload-time = "2026-05-11T18:54:17.146Z" },
     { url = "https://files.pythonhosted.org/packages/56/3b/e7d20dea247a3e6dc0bd8a6953854afbedc03951def4e7371e05e7263e25/pandas-3.0.3-cp314-cp314t-win_amd64.whl", hash = "sha256:4db8c527972a821cf5286b40ccc57642a39bc62e62022b42f99f8a67fca8c3a1", size = 10900855, upload-time = "2026-05-11T18:54:19.72Z" },
     { url = "https://files.pythonhosted.org/packages/0f/54/68a0978d1ef8502b8492099beaa6e7a0c1b32e3b5d4f677f5810cb08711c/pandas-3.0.3-cp314-cp314t-win_arm64.whl", hash = "sha256:b2c95f8bfc1ee412bf482605d7bfd30c12d1d26bd59fdd91efeef1d4718decb1", size = 9466464, upload-time = "2026-05-11T18:54:22.754Z" },
+]
+
+[[package]]
+name = "pandas-stubs"
+version = "3.0.0.260204"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/27/1d/297ff2c7ea50a768a2247621d6451abb2a07c0e9be7ca6d36ebe371658e5/pandas_stubs-3.0.0.260204.tar.gz", hash = "sha256:bf9294b76352effcffa9cb85edf0bed1339a7ec0c30b8e1ac3d66b4228f1fbc3", size = 109383, upload-time = "2026-02-04T15:17:17.247Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7c/2f/f91e4eee21585ff548e83358332d5632ee49f6b2dcd96cb5dca4e0468951/pandas_stubs-3.0.0.260204-py3-none-any.whl", hash = "sha256:5ab9e4d55a6e2752e9720828564af40d48c4f709e6a2c69b743014a6fcb6c241", size = 168540, upload-time = "2026-02-04T15:17:15.615Z" },
 ]
 
 [[package]]
@@ -2777,6 +2813,33 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/d6/8d/37d686f52dfbccc47b857751531ffdec262b0f35158dd3b306030dafdb83/traittypes-0.2.3.tar.gz", hash = "sha256:212feed38d566d772648768b78d3347c148ef23915b91c02078188e631316c86", size = 16003, upload-time = "2025-10-22T11:06:09.952Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/8d/c0/fdf9d3ee103ce66a55f0532835ad5e154226c5222423c6636ba049dc42fc/traittypes-0.2.3-py2.py3-none-any.whl", hash = "sha256:49016082ce740d6556d9bb4672ee2d899cd14f9365f17cbb79d5d96b47096d4e", size = 8130, upload-time = "2025-10-22T11:06:08.824Z" },
+]
+
+[[package]]
+name = "types-geopandas"
+version = "1.1.3.20260518"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+    { name = "pandas-stubs" },
+    { name = "pyproj" },
+    { name = "types-shapely" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/09/77/cad393d5276892acebb7276ae839f4dd74bc6aae7794dd9d774c3f1d594d/types_geopandas-1.1.3.20260518.tar.gz", hash = "sha256:ba519db699a484aea32ebb8e6536ced1f6d1caa3c8fdf80f92f8cbb2ddb31d05", size = 23813, upload-time = "2026-05-18T06:07:45.247Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/2b/4a/e71a0f84baec24a4868f7472031bef5250a32d9338ec8285de1fa2b9214e/types_geopandas-1.1.3.20260518-py3-none-any.whl", hash = "sha256:5b55a4e8aa898f33eb0f464fd78dd332f7773ec89c9e4254510fe988757c3b10", size = 31797, upload-time = "2026-05-18T06:07:44.394Z" },
+]
+
+[[package]]
+name = "types-shapely"
+version = "2.1.0.20260518"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/cc/8f/47c018a1f66509c118cb38d337798c7bd1049847c2fc7925bf613deb45e2/types_shapely-2.1.0.20260518.tar.gz", hash = "sha256:468d2a3f8a3dff31f51779259b110526bda90451e61d8a4a72afe09feb94ad48", size = 26741, upload-time = "2026-05-18T06:05:58.536Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/bc/a0/3c59bf2e80ea7abe90517003d74fca2798fd3a87729bc86f0a11cee63d97/types_shapely-2.1.0.20260518-py3-none-any.whl", hash = "sha256:61608cda87d97ba9cd9386e04b95038aae19b9b6908cd8fcc44caa18b8a8c309", size = 37873, upload-time = "2026-05-18T06:05:57.647Z" },
 ]
 
 [[package]]

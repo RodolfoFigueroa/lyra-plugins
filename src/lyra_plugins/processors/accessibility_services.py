@@ -2,7 +2,7 @@ from typing import Literal
 
 import geopandas as gpd
 import numpy as np
-import pandana as pdna
+import pandarm as pdna
 import pandas as pd
 from lyra.sdk import LyraDB
 from lyra.sdk.models import GeoJSON
