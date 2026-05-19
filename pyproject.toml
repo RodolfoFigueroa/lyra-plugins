@@ -26,3 +26,6 @@ dev = [
 [project.entry-points.lyra]
 tree_coverage = "lyra_plugins.processors.tree_coverage"
 urbanized_area = "lyra_plugins.processors.urbanized_area"
+temperature = "lyra_plugins.processors.temperature"
+accessibility_jobs = "lyra_plugins.processors.accessibility_jobs"
+accessibility_services = "lyra_plugins.processors.accessibility_services"
