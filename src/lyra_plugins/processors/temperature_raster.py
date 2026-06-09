@@ -36,7 +36,7 @@ def calculate(
     with tempfile.NamedTemporaryFile(suffix=".tif") as tmp:
         geemap.download_ee_image(
             img,
-            tmp,
+            tmp.name,
             region=bounds,
             crs="EPSG:4326",
             scale=30,
