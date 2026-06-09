@@ -38,6 +38,7 @@ def calculate(
             img,
             tmp.name,
             region=bounds,
+            dtype="float32",
             crs="EPSG:4326",
             scale=30,
             resampling="near",
