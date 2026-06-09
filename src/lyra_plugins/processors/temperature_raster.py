@@ -1,8 +1,10 @@
+import tempfile
 from pathlib import Path
 from typing import Literal
 from uuid import uuid4
 
 import geemap
+import rasterio as rio
 from lyra.sdk.types import ExplicitBoundsAPI
 from lyra.utils.date import get_season_date_range
 from lyra.utils.ee import convert_polygon_to_ee
@@ -28,13 +30,27 @@ def calculate(
 
     start_date, end_date = get_season_date_range(season, year)
     img = reduce_landsat_collection(bounds, start_date, end_date)
+
     fpath = Path("/lyra_cache") / f"{uuid4().hex}.tif"
-    geemap.download_ee_image(
-        img,
-        fpath,
-        region=bounds,
-        crs="EPSG:4326",
-        scale=30,
-        resampling="near",
-    )
+
+    with tempfile.NamedTemporaryFile(suffix=".tif") as tmp:
+        geemap.download_ee_image(
+            img,
+            tmp,
+            region=bounds,
+            crs="EPSG:4326",
+            scale=30,
+            resampling="near",
+        )
+
+        with rio.open(tmp.name) as src:
+            profile = src.profile
+            profile.update(
+                count=1,
+                compress="lzw",
+            )
+
+            with rio.open(fpath, "w", **profile) as dst:
+                dst.write(src.read(1), 1)
+
     return str(fpath)
