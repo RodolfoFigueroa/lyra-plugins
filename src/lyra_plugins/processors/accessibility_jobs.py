@@ -16,6 +16,7 @@ METRIC_DESCRIPTION: str = (
     "Computes job accessibility scores for each spatial unit using road network "
     "analysis and employment data."
 )
+
 ITEMS_DEFAULT = {
     "default": JobGroupModel(
         edge_weights="length",
@@ -34,10 +35,7 @@ def calculate_prepare(
     wanted_crs = "EPSG:6372"
 
     if month is None:
-        if year == 2025:
-            month = 5
-        else:
-            month = 11
+        month = 5 if year == 2025 else 11
 
     df = convert_geojson_to_gdf(data)
     df = df.to_crs(wanted_crs)
@@ -73,11 +71,11 @@ def calculate_prepare(
 
     df_mesh = db.load_mesh_from_bounds(xmin, ymin, xmax, ymax)[["geometry"]].assign(
         osmid_drive=lambda df: get_geometries_osmid(
-            df,  # ty: ignore[invalid-argument-type]
+            df,
             net_accessibility_drive,
         ),
         osmid_walk=lambda df: get_geometries_osmid(
-            df,  # ty: ignore[invalid-argument-type]
+            df,
             net_accessibility_walk,
         ),
     )
@@ -120,7 +118,7 @@ def calculate_for_items(
         name=f"jobs_{item_key}",
     )
 
-    mesh = mesh.merge(
+    mesh_joined = mesh.merge(
         net_accessibility.aggregate(
             item.max_weight,
             type="sum",
@@ -138,7 +136,7 @@ def calculate_for_items(
     return pd.DataFrame(
         df[["geometry"]]
         .reset_index(names="orig_index")
-        .sjoin(mesh, how="left")
+        .sjoin(mesh_joined, how="left")
         .drop(columns=[osmid_col, "index_right", "geometry"])
         .groupby("orig_index")
         .mean()[f"jobs_{item_key}"],

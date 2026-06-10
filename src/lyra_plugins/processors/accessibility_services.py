@@ -17,11 +17,26 @@ from lyra_plugins.functions.osm import (
 )
 from lyra_plugins.models.accessibility_services import AmenityGroupModel
 
+METRIC_DESCRIPTION: str = (
+    "Computes service accessibility scores for each spatial unit using road "
+    "network analysis and amenity data."
+)
+
+ITEMS_DEFAULT = {
+    "default": AmenityGroupModel(
+        attraction_edge_weights="length",
+        attraction_max_weight=1000,
+        accessibility_edge_weights="length",
+        accessibility_max_weight=1000,
+        network_type="drive",
+    ),
+}
+
 
 def process_denue_amenities(df_denue: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     df_denue = df_denue.assign(
         num_workers=lambda x: x["per_ocu"].map(PER_OCU_TO_NUM_WORKERS_MAP),
-    ).drop(columns=["per_ocu"])
+    ).drop(columns=["per_ocu"])  # ty:ignore[invalid-assignment]
 
     for name, amenity_query in AMENITIES_DICT.items():
         query = amenity_query.denue_query
@@ -31,7 +46,7 @@ def process_denue_amenities(df_denue: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
     return df_denue.dropna(subset=["amenity"]).drop(
         columns=["codigo_act"],
-    )
+    )  # ty:ignore[invalid-return-type]
 
 
 def concat_amenities(
@@ -67,7 +82,7 @@ def merge_mesh_and_census(
 
     mesh = mesh.to_crs(crs)
     mesh_agg = (
-        mesh.overlay(agebs.assign(ageb_area=lambda df: df.area))
+        mesh.overlay(agebs.assign(ageb_area=lambda df: df.area))  # ty:ignore[invalid-argument-type]
         .assign(
             area_fraction=lambda df: df.area / df.ageb_area,
         )
@@ -78,7 +93,7 @@ def merge_mesh_and_census(
             continue
         mesh_agg[c] = mesh_agg[c] * mesh_agg["area_fraction"]
     mesh_agg = mesh_agg.drop(columns="area_fraction").groupby("codigo").sum()
-    return mesh.merge(mesh_agg, on="codigo", how="left").fillna(0.0)
+    return mesh.merge(mesh_agg, on="codigo", how="left").fillna(0.0)  # ty:ignore[invalid-return-type]
 
 
 def update_net_with_mesh(
@@ -132,10 +147,10 @@ def get_amenities_adjusted_attraction(
                 how="left",
             )
             .set_index("amenity_index")
-        )
+        )  # ty:ignore[invalid-assignment]
 
     # Find reached population relevant for each amenity type
-    amenities = amenities.assign(reached_population=0.0)
+    amenities = amenities.assign(reached_population=0.0)  # ty:ignore[invalid-assignment]
     for amenity_type in amenities["amenity"].unique():
         query = AMENITIES_DICT[amenity_type].pob_query
         amenities.loc[
@@ -178,7 +193,7 @@ def compute_accessibility_services(
         ).rename("accessibility"),
         on="osmid",
         how="left",
-    )
+    )  # ty:ignore[invalid-assignment]
 
     # Create a score between 0 and 100 that is easy to compare.
     # Why are raw scores so bad? This should not be the case.
@@ -186,7 +201,7 @@ def compute_accessibility_services(
         accessibility_score=lambda df: (
             (np.log(df["accessibility"].fillna(0.0) + 1) * 12.5).clip(0, 100) / 100
         ),
-    )
+    )  # ty:ignore[invalid-assignment]
 
     # Aggregate over geometries
     return gpd.GeoDataFrame(
@@ -196,21 +211,6 @@ def compute_accessibility_services(
         .groupby("index")
         .agg({"accessibility_score": "mean"}),
     ).rename(columns={"accessibility_score": "accessibility"})["accessibility"]
-
-
-METRIC_DESCRIPTION: str = (
-    "Computes service accessibility scores for each spatial unit using road "
-    "network analysis and amenity data."
-)
-ITEMS_DEFAULT = {
-    "default": AmenityGroupModel(
-        attraction_edge_weights="length",
-        attraction_max_weight=1000,
-        accessibility_edge_weights="length",
-        accessibility_max_weight=1000,
-        network_type="drive",
-    ),
-}
 
 
 def calculate_prepare(
@@ -223,10 +223,7 @@ def calculate_prepare(
     wanted_crs = "EPSG:6372"
 
     if month is None:
-        if year == 2025:
-            month = 5
-        else:
-            month = 11
+        month = 5 if year == 2025 else 11
 
     df = convert_geojson_to_gdf(data).to_crs(wanted_crs)
     xmin, ymin, xmax, ymax = df["geometry"].buffer(10_000).total_bounds
@@ -248,7 +245,7 @@ def calculate_prepare(
         )
 
     df_denue = process_denue_amenities(
-        db.load_denue_from_bounds(xmin, ymin, xmax, ymax, year=year, month=month)
+        db.load_denue_from_bounds(xmin, ymin, xmax, ymax, year=year, month=month),
     )
 
     df_amenities = concat_amenities(df_denue, df_public_spaces)
@@ -289,12 +286,12 @@ def calculate_prepare(
 
         df_mesh_type = df_mesh.assign(
             osmid=lambda df: get_geometries_osmid(
-                df,  # ty: ignore[invalid-argument-type]
+                df,
                 net_accessibility,
             ),
         )
 
-        update_net_with_mesh(net_accessibility, df_mesh_type)
+        update_net_with_mesh(net_accessibility, df_mesh_type)  # ty:ignore[invalid-argument-type]
         out_map[f"net_accessibility_{network_type}"] = net_accessibility
         out_map[f"mesh_{network_type}"] = df_mesh_type
 

@@ -32,3 +32,7 @@ temperature = "lyra_plugins.processors.temperature"
 accessibility_jobs = "lyra_plugins.processors.accessibility_jobs"
 accessibility_services = "lyra_plugins.processors.accessibility_services"
 temperature_raster = "lyra_plugins.processors.temperature_raster"
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = ["D", "COM812", "PLR0913", "PLR2004"]

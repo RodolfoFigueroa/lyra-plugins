@@ -14,6 +14,13 @@ METRIC_DESCRIPTION = (
     "thermal band (Band 10)."
 )
 
+TAVI_HINT = (
+    "Use this tool when the user asks about heat, temperature, urban "
+    "heat islands, or thermal conditions. Returns the average daytime land "
+    "surface temperature (degrees Celsius) for each census tract, derived from "
+    "satellite imagery."
+)
+
 
 def calculate(
     data: ExplicitLocationAPI,
