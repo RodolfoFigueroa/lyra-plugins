@@ -29,11 +29,15 @@ def calculate_prepare(
     data: ExplicitLocationAPI,
     db: LyraDB,
     year: Literal[2020, 2021, 2022, 2023, 2024, 2025] | None = None,
+    month: Literal[5, 11] | None = None,
 ) -> dict:
     wanted_crs = "EPSG:6372"
 
     if year is None:
         year = 2025
+
+    if month is None:
+        month = 5
 
     df = convert_geojson_to_gdf(data)
     df = df.to_crs(wanted_crs)
@@ -57,7 +61,7 @@ def calculate_prepare(
     )
 
     df_denue = (
-        db.load_denue_from_bounds(xmin, ymin, xmax, ymax, year=year)
+        db.load_denue_from_bounds(xmin, ymin, xmax, ymax, year=year, month=month)
         .to_crs(wanted_crs)
         .assign(num_workers=lambda x: x["per_ocu"].map(PER_OCU_TO_NUM_WORKERS_MAP))
         .drop(columns=["per_ocu"])
