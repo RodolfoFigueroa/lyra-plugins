@@ -217,16 +217,16 @@ def calculate_prepare(
     data: ExplicitLocationAPI,
     db: LyraDB,
     data_public: GeoJSON | None = None,
-    year: Literal[2020, 2021, 2022, 2023, 2024, 2025] | None = None,
+    year: Literal[2020, 2021, 2022, 2023, 2024, 2025] = 2025,
     month: Literal[5, 11] | None = None,
 ) -> dict:
     wanted_crs = "EPSG:6372"
 
-    if year is None:
-        year = 2025
-
     if month is None:
-        month = 11
+        if year == 2025:
+            month = 5
+        else:
+            month = 11
 
     df = convert_geojson_to_gdf(data).to_crs(wanted_crs)
     xmin, ymin, xmax, ymax = df["geometry"].buffer(10_000).total_bounds
