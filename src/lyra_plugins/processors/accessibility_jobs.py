@@ -71,11 +71,11 @@ def calculate_prepare(
 
     df_mesh = db.load_mesh_from_bounds(xmin, ymin, xmax, ymax)[["geometry"]].assign(
         osmid_drive=lambda df: get_geometries_osmid(
-            df,
+            df,  # ty:ignore[invalid-argument-type]
             net_accessibility_drive,
         ),
         osmid_walk=lambda df: get_geometries_osmid(
-            df,
+            df,  # ty:ignore[invalid-argument-type]
             net_accessibility_walk,
         ),
     )

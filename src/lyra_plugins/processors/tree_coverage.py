@@ -22,7 +22,7 @@ TAVI_HINT = (
     "Use this tool when the user asks about greenery, vegetation, "
     "tree cover, canopy, or urban forests. Returns the percentage of land area "
     "covered by tree canopy for each census tract, derived from high-resolution "
-    "aerial imagery.",
+    "aerial imagery."
 )
 
 calculate = reduce_ee_image_over_gdf_factory(

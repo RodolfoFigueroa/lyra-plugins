@@ -36,7 +36,7 @@ ITEMS_DEFAULT = {
 def process_denue_amenities(df_denue: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     df_denue = df_denue.assign(
         num_workers=lambda x: x["per_ocu"].map(PER_OCU_TO_NUM_WORKERS_MAP),
-    ).drop(columns=["per_ocu"])  # ty:ignore[invalid-assignment]
+    ).drop(columns=["per_ocu"])
 
     for name, amenity_query in AMENITIES_DICT.items():
         query = amenity_query.denue_query
@@ -46,7 +46,7 @@ def process_denue_amenities(df_denue: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
     return df_denue.dropna(subset=["amenity"]).drop(
         columns=["codigo_act"],
-    )  # ty:ignore[invalid-return-type]
+    )
 
 
 def concat_amenities(
@@ -82,7 +82,7 @@ def merge_mesh_and_census(
 
     mesh = mesh.to_crs(crs)
     mesh_agg = (
-        mesh.overlay(agebs.assign(ageb_area=lambda df: df.area))  # ty:ignore[invalid-argument-type]
+        mesh.overlay(agebs.assign(ageb_area=lambda df: df.area))
         .assign(
             area_fraction=lambda df: df.area / df.ageb_area,
         )
@@ -93,7 +93,7 @@ def merge_mesh_and_census(
             continue
         mesh_agg[c] = mesh_agg[c] * mesh_agg["area_fraction"]
     mesh_agg = mesh_agg.drop(columns="area_fraction").groupby("codigo").sum()
-    return mesh.merge(mesh_agg, on="codigo", how="left").fillna(0.0)  # ty:ignore[invalid-return-type]
+    return mesh.merge(mesh_agg, on="codigo", how="left").fillna(0.0)
 
 
 def update_net_with_mesh(
@@ -147,10 +147,10 @@ def get_amenities_adjusted_attraction(
                 how="left",
             )
             .set_index("amenity_index")
-        )  # ty:ignore[invalid-assignment]
+        )
 
     # Find reached population relevant for each amenity type
-    amenities = amenities.assign(reached_population=0.0)  # ty:ignore[invalid-assignment]
+    amenities = amenities.assign(reached_population=0.0)
     for amenity_type in amenities["amenity"].unique():
         query = AMENITIES_DICT[amenity_type].pob_query
         amenities.loc[
@@ -193,7 +193,7 @@ def compute_accessibility_services(
         ).rename("accessibility"),
         on="osmid",
         how="left",
-    )  # ty:ignore[invalid-assignment]
+    )
 
     # Create a score between 0 and 100 that is easy to compare.
     # Why are raw scores so bad? This should not be the case.
@@ -201,7 +201,7 @@ def compute_accessibility_services(
         accessibility_score=lambda df: (
             (np.log(df["accessibility"].fillna(0.0) + 1) * 12.5).clip(0, 100) / 100
         ),
-    )  # ty:ignore[invalid-assignment]
+    )
 
     # Aggregate over geometries
     return gpd.GeoDataFrame(
@@ -286,12 +286,12 @@ def calculate_prepare(
 
         df_mesh_type = df_mesh.assign(
             osmid=lambda df: get_geometries_osmid(
-                df,
-                net_accessibility,
+                df,  # ty:ignore[invalid-argument-type]
+                net_accessibility,  # noqa: B023
             ),
         )
 
-        update_net_with_mesh(net_accessibility, df_mesh_type)  # ty:ignore[invalid-argument-type]
+        update_net_with_mesh(net_accessibility, df_mesh_type)
         out_map[f"net_accessibility_{network_type}"] = net_accessibility
         out_map[f"mesh_{network_type}"] = df_mesh_type
 
