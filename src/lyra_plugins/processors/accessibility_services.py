@@ -5,7 +5,7 @@ import numpy as np
 import pandarm as pdna
 import pandas as pd
 from lyra.sdk import LyraDB
-from lyra.sdk.models import GeoJSON
+from lyra.sdk.models.geometry import GeoJSON
 from lyra.sdk.types import ExplicitLocationAPI
 from lyra.utils.geometry import convert_geojson_to_gdf
 

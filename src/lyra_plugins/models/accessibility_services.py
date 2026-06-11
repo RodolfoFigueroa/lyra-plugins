@@ -1,7 +1,7 @@
 from enum import StrEnum
 from typing import Literal
 
-from lyra.sdk.models import StrictBaseModel
+from lyra.sdk.models.strict import StrictBaseModel
 from pydantic import Field
 
 from lyra_plugins.constants import AMENITIES_DICT
