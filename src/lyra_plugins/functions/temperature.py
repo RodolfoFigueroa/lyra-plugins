@@ -33,9 +33,10 @@ def reduce_landsat_collection(
     bounds: ee.geometry.Geometry,
     start_date: str,
     end_date: str,
+    col_idx: int,
 ) -> ee.image.Image:
     filtered: ee.imagecollection.ImageCollection = (
-        ee.imagecollection.ImageCollection("LANDSAT/LC09/C02/T1_L2")
+        ee.imagecollection.ImageCollection(f"LANDSAT/LC0{col_idx}/C02/T1_L2")
         .filterDate(start_date, end_date)
         .filterBounds(bounds)
     )

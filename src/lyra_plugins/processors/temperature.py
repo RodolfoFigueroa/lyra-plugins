@@ -28,10 +28,14 @@ def calculate(
     season: Literal["spring", "summer", "autumn", "winter"],
 ) -> dict:
     start_date, end_date = get_season_date_range(season, year)
+
+    col_idx = 8 if year < 2022 else 9
+
     load_img_func = functools.partial(
         reduce_landsat_collection,
         start_date=start_date,
         end_date=end_date,
+        col_idx=col_idx,
     )
     return reduce_ee_image_over_gdf_factory(
         load_img_func,
