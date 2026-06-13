@@ -29,7 +29,9 @@ def calculate(
     bounds = convert_polygon_to_ee(gdf["geometry"].iloc[0])
 
     start_date, end_date = get_season_date_range(season, year)
-    img = reduce_landsat_collection(bounds, start_date, end_date)
+    img = reduce_landsat_collection(
+        bounds, start_date, end_date, col_idx=8 if year < 2022 else 9
+    )
 
     fpath = Path("/lyra_cache") / f"{uuid4().hex}.tif"
 
