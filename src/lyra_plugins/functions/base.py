@@ -29,7 +29,7 @@ def download_ee_image(
     img: ee.Image,
     bounds: ee.Geometry,
     fpath: os.PathLike,
-    **download_kwargs,  # noqa: ANN003
+    download_kwargs: dict,
 ) -> None:
     with tempfile.NamedTemporaryFile(suffix=".tif") as tmp:
         geemap.download_ee_image(img, tmp.name, region=bounds, **download_kwargs)
