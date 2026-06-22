@@ -15,7 +15,11 @@ TAVI_HINT = (
 )
 
 calculate = reduce_ee_image_over_gdf_factory(
-    load_tree_coverage_img,
+    lambda bbox: (
+        load_tree_coverage_img(bbox)
+        .gte(ee.Number(3))
+        .multiply(ee.image.Image.pixelArea())
+    ),
     reducer=ee.Reducer.sum(),
     scale=25,
 )

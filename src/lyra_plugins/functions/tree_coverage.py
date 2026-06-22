@@ -8,6 +8,4 @@ def load_tree_coverage_img(bbox: ee.Geometry) -> ee.Image:
         )
         .filterBounds(bbox)
         .mean()
-        .gte(ee.Number(3))
-        .multiply(ee.image.Image.pixelArea())
     )
