@@ -26,12 +26,13 @@ dev = [
 ]
 
 [project.entry-points.lyra]
-tree_coverage = "lyra_plugins.processors.tree_coverage"
-urbanized_area = "lyra_plugins.processors.urbanized_area"
-temperature = "lyra_plugins.processors.temperature"
 accessibility_jobs = "lyra_plugins.processors.accessibility_jobs"
 accessibility_services = "lyra_plugins.processors.accessibility_services"
+temperature = "lyra_plugins.processors.temperature"
 temperature_raster = "lyra_plugins.processors.temperature_raster"
+tree_coverage = "lyra_plugins.processors.tree_coverage"
+tree_coverage_raster = "lyra_plugins.processors.tree_coverage_raster"
+urbanized_area = "lyra_plugins.processors.urbanized_area"
 
 [tool.ruff.lint]
 select = ["ALL"]

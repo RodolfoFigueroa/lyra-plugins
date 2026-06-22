@@ -1,21 +1,10 @@
 import ee
 from lyra.utils.ee import reduce_ee_image_over_gdf_factory
 
-
-def load_tree_coverage_img(bbox: ee.Geometry) -> ee.Image:
-    return (
-        ee.ImageCollection(
-            "projects/sat-io/open-datasets/facebook/meta-canopy-height",
-        )
-        .filterBounds(bbox)
-        .mean()
-        .gte(ee.Number(3))
-        .multiply(ee.image.Image.pixelArea())
-    )
-
+from lyra_plugins.functions.tree_coverage import load_tree_coverage_img
 
 METRIC_DESCRIPTION: str = (
-    "Computes tree canopy coverage area in square metres for each spatial unit."
+    "Tree canopy coverage fraction, derived from high-resolution aerial imagery."
 )
 
 TAVI_HINT = (

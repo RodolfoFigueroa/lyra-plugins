@@ -1,6 +1,12 @@
+import os
+import tempfile
+
+import ee
+import geemap
 import geopandas as gpd
 import pandarm as pdna
 import pandas as pd
+import rasterio as rio
 
 
 def get_geometries_osmid(
@@ -17,3 +23,23 @@ def get_geometries_osmid(
         # don't need to scale it.
         mapping_distance=mapping_distance,
     )
+
+
+def download_ee_image(
+    img: ee.Image,
+    bounds: ee.Geometry,
+    fpath: os.PathLike,
+    **download_kwargs,  # noqa: ANN003
+) -> None:
+    with tempfile.NamedTemporaryFile(suffix=".tif") as tmp:
+        geemap.download_ee_image(img, tmp.name, region=bounds, **download_kwargs)
+
+        with rio.open(tmp.name) as src:
+            profile = src.profile
+            profile.update(
+                count=1,
+                compress="lzw",
+            )
+
+            with rio.open(fpath, "w", **profile) as dst:
+                dst.write(src.read(1), 1)
