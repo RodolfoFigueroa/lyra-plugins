@@ -6,19 +6,25 @@ from lyra.utils.ee import convert_polygon_to_ee
 from lyra.utils.geometry import convert_geojson_to_gdf
 
 from lyra_plugins.functions.base import download_ee_image
-from lyra_plugins.functions.tree_coverage import load_tree_coverage_img
+from lyra_plugins.functions.tree_coverage import load_tree_coverage_fraction_img
 
 METRIC_DESCRIPTION: str = (
-    "Tree canopy coverage fraction raster, derived from high-resolution aerial imagery."
+    "Tree canopy coverage fraction raster, where each pixel is the fraction "
+    "of its area covered by trees above the height threshold."
 )
 RETURNS_FILE = True
 
 
-def calculate(data: ExplicitBoundsAPI, crs: str = "EPSG:4326", scale: int = 10) -> str:
+def calculate(
+    data: ExplicitBoundsAPI,
+    crs: str = "EPSG:4326",
+    scale: int = 10,
+    min_tree_height: float = 3,
+) -> str:
     gdf = convert_geojson_to_gdf(data).to_crs("EPSG:4326")
     bounds = convert_polygon_to_ee(gdf["geometry"].iloc[0])
 
-    img = load_tree_coverage_img(bounds)
+    img = load_tree_coverage_fraction_img(bounds, crs, scale, min_tree_height)
 
     fpath = Path("/lyra_cache") / f"{uuid4().hex}.tif"
     download_ee_image(
