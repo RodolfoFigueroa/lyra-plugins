@@ -24,7 +24,7 @@ def calculate(
     gdf = convert_geojson_to_gdf(data).to_crs("EPSG:4326")
     bounds = convert_polygon_to_ee(gdf["geometry"].iloc[0])
 
-    img = load_tree_coverage_fraction_img(bounds, crs, scale, min_tree_height)
+    img = load_tree_coverage_fraction_img(bounds, min_tree_height)
 
     fpath = Path("/lyra_cache") / f"{uuid4().hex}.tif"
     download_ee_image(
