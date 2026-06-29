@@ -1,0 +1,531 @@
+{
+  "schema_version": 2,
+  "plugin": {
+    "name": "lyra-plugins",
+    "version": "0.1.0"
+  },
+  "metrics": [
+    {
+      "name": "accessibility_jobs",
+      "description": "Computes job accessibility scores for each spatial unit using road network analysis and employment data.",
+      "spatial_inputs": {
+        "location": "location"
+      },
+      "request_schema": {
+        "type": "object",
+        "required": ["location", "patterns"],
+        "properties": {
+          "location": {},
+          "patterns": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["key", "value"],
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                  "minLength": 1,
+                  "maxLength": 64
+                },
+                "value": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                }
+              },
+              "additionalProperties": false
+            },
+            "minItems": 1,
+            "maxItems": 20,
+            "uniqueItems": true
+          },
+          "edge_weights": {
+            "type": "string",
+            "enum": ["length", "travel_time"],
+            "default": "length"
+          },
+          "max_weight": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "default": 1000
+          },
+          "network_type": {
+            "type": "string",
+            "enum": ["drive", "walk"],
+            "default": "drive"
+          },
+          "year": {
+            "type": "integer",
+            "enum": [2020, 2021, 2022, 2023, 2024, 2025],
+            "default": 2025
+          },
+          "month": {
+            "enum": [5, 11, null],
+            "default": null
+          }
+        },
+        "additionalProperties": false
+      },
+      "output": {
+        "kind": "table",
+        "columns": [],
+        "batched_columns": [
+          {
+            "source": "patterns",
+            "name_template": "jobs_{key}",
+            "type": "number",
+            "unit": "jobs",
+            "description_template": "Job accessibility for {label}.",
+            "nullable": false,
+            "batching_reason": "Reuses the network graph and employment data across requested DENUE regex patterns."
+          }
+        ]
+      },
+      "execution": {
+        "queue": "interactive"
+      },
+      "entrypoint": "lyra_plugins.runners.accessibility_jobs:run"
+    },
+    {
+      "name": "accessibility_services",
+      "description": "Computes service accessibility scores for each spatial unit using road network analysis and amenity data.",
+      "spatial_inputs": {
+        "location": "location"
+      },
+      "request_schema": {
+        "type": "object",
+        "required": ["location", "service_filters"],
+        "properties": {
+          "location": {},
+          "service_filters": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["key", "value"],
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                  "minLength": 1,
+                  "maxLength": 64
+                },
+                "value": {
+                  "type": "object",
+                  "required": ["amenities"],
+                  "properties": {
+                    "amenities": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/$defs/amenity"
+                      },
+                      "minItems": 1,
+                      "maxItems": 13,
+                      "uniqueItems": true
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                }
+              },
+              "additionalProperties": false
+            },
+            "minItems": 1,
+            "maxItems": 20,
+            "uniqueItems": true
+          },
+          "attraction_edge_weights": {
+            "type": "string",
+            "enum": ["length", "travel_time"],
+            "default": "length"
+          },
+          "attraction_max_weight": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "default": 1000
+          },
+          "accessibility_edge_weights": {
+            "type": "string",
+            "enum": ["length", "travel_time"],
+            "default": "length"
+          },
+          "accessibility_max_weight": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "default": 1000
+          },
+          "network_type": {
+            "type": "string",
+            "enum": ["drive", "walk"],
+            "default": "drive"
+          },
+          "year": {
+            "type": "integer",
+            "enum": [2020, 2021, 2022, 2023, 2024, 2025],
+            "default": 2025
+          },
+          "month": {
+            "enum": [5, 11, null],
+            "default": null
+          }
+        },
+        "additionalProperties": false,
+        "$defs": {
+          "amenity": {
+            "type": "string",
+            "enum": [
+              "salud_hospital",
+              "salud_consultorio",
+              "salud_farmacia",
+              "recreativo_parque",
+              "recreativo_club",
+              "recreativo_cine",
+              "recreativo_otro",
+              "educacion_guarderia",
+              "educacion_preescolar",
+              "educacion_primaria",
+              "educacion_secundaria",
+              "educacion_media_superior",
+              "educacion_superior"
+            ]
+          }
+        }
+      },
+      "output": {
+        "kind": "table",
+        "columns": [],
+        "batched_columns": [
+          {
+            "source": "service_filters",
+            "name_template": "accessibility_{key}",
+            "type": "number",
+            "unit": "ratio",
+            "description_template": "Service accessibility for {label}.",
+            "nullable": false,
+            "batching_reason": "Reuses the network graph, census mesh, and amenity data across requested service filters."
+          }
+        ]
+      },
+      "execution": {
+        "queue": "interactive"
+      },
+      "entrypoint": "lyra_plugins.runners.accessibility_services:run"
+    },
+    {
+      "name": "accessibility_services_with_public_spaces",
+      "description": "Computes service accessibility scores using caller-provided public-space features.",
+      "spatial_inputs": {
+        "location": "location",
+        "public_spaces": "location"
+      },
+      "request_schema": {
+        "type": "object",
+        "required": ["location", "public_spaces", "service_filters"],
+        "properties": {
+          "location": {},
+          "public_spaces": {},
+          "service_filters": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["key", "value"],
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                  "minLength": 1,
+                  "maxLength": 64
+                },
+                "value": {
+                  "type": "object",
+                  "required": ["amenities"],
+                  "properties": {
+                    "amenities": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/$defs/amenity"
+                      },
+                      "minItems": 1,
+                      "maxItems": 13,
+                      "uniqueItems": true
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                }
+              },
+              "additionalProperties": false
+            },
+            "minItems": 1,
+            "maxItems": 20,
+            "uniqueItems": true
+          },
+          "attraction_edge_weights": {
+            "type": "string",
+            "enum": ["length", "travel_time"],
+            "default": "length"
+          },
+          "attraction_max_weight": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "default": 1000
+          },
+          "accessibility_edge_weights": {
+            "type": "string",
+            "enum": ["length", "travel_time"],
+            "default": "length"
+          },
+          "accessibility_max_weight": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "default": 1000
+          },
+          "network_type": {
+            "type": "string",
+            "enum": ["drive", "walk"],
+            "default": "drive"
+          },
+          "year": {
+            "type": "integer",
+            "enum": [2020, 2021, 2022, 2023, 2024, 2025],
+            "default": 2025
+          },
+          "month": {
+            "enum": [5, 11, null],
+            "default": null
+          }
+        },
+        "additionalProperties": false,
+        "$defs": {
+          "amenity": {
+            "type": "string",
+            "enum": [
+              "salud_hospital",
+              "salud_consultorio",
+              "salud_farmacia",
+              "recreativo_parque",
+              "recreativo_club",
+              "recreativo_cine",
+              "recreativo_otro",
+              "educacion_guarderia",
+              "educacion_preescolar",
+              "educacion_primaria",
+              "educacion_secundaria",
+              "educacion_media_superior",
+              "educacion_superior"
+            ]
+          }
+        }
+      },
+      "output": {
+        "kind": "table",
+        "columns": [],
+        "batched_columns": [
+          {
+            "source": "service_filters",
+            "name_template": "accessibility_{key}",
+            "type": "number",
+            "unit": "ratio",
+            "description_template": "Service accessibility for {label}.",
+            "nullable": false,
+            "batching_reason": "Reuses the network graph, census mesh, and amenity data across requested service filters."
+          }
+        ]
+      },
+      "execution": {
+        "queue": "interactive"
+      },
+      "entrypoint": "lyra_plugins.runners.accessibility_services_with_public_spaces:run"
+    },
+    {
+      "name": "temperature",
+      "description": "Average surface temperature in degrees Celsius, derived from Landsat 9 thermal band (Band 10).",
+      "spatial_inputs": {
+        "location": "location"
+      },
+      "request_schema": {
+        "type": "object",
+        "required": ["location", "year", "season"],
+        "properties": {
+          "location": {},
+          "year": {
+            "type": "integer",
+            "enum": [2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025]
+          },
+          "season": {
+            "type": "string",
+            "enum": ["spring", "summer", "autumn", "winter"]
+          }
+        },
+        "additionalProperties": false
+      },
+      "output": {
+        "kind": "table",
+        "columns": [
+          {
+            "name": "temperature_c",
+            "type": "number",
+            "unit": "degC",
+            "description": "Average land surface temperature in degrees Celsius."
+          }
+        ]
+      },
+      "execution": {
+        "queue": "interactive"
+      },
+      "entrypoint": "lyra_plugins.runners.temperature:run"
+    },
+    {
+      "name": "temperature_raster",
+      "description": "Surface temperature raster in degrees Celsius, derived from Landsat 9 thermal band (Band 10).",
+      "spatial_inputs": {
+        "bounds": "bounds"
+      },
+      "request_schema": {
+        "type": "object",
+        "required": ["bounds", "year", "season"],
+        "properties": {
+          "bounds": {},
+          "year": {
+            "type": "integer",
+            "enum": [2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025]
+          },
+          "season": {
+            "type": "string",
+            "enum": ["spring", "summer", "autumn", "winter"]
+          },
+          "crs": {
+            "type": "string",
+            "default": "EPSG:4326"
+          },
+          "scale": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 30
+          }
+        },
+        "additionalProperties": false
+      },
+      "output": {
+        "kind": "file",
+        "media_type": "image/tiff",
+        "extensions": [".tif", ".tiff"]
+      },
+      "execution": {
+        "queue": "interactive"
+      },
+      "entrypoint": "lyra_plugins.runners.temperature_raster:run"
+    },
+    {
+      "name": "tree_coverage",
+      "description": "Tree canopy coverage fraction, derived from high-resolution aerial imagery.",
+      "spatial_inputs": {
+        "location": "location"
+      },
+      "request_schema": {
+        "type": "object",
+        "required": ["location"],
+        "properties": {
+          "location": {}
+        },
+        "additionalProperties": false
+      },
+      "output": {
+        "kind": "table",
+        "columns": [
+          {
+            "name": "tree_coverage_m2",
+            "type": "number",
+            "unit": "m2",
+            "description": "Tree canopy area in square meters."
+          }
+        ]
+      },
+      "execution": {
+        "queue": "interactive"
+      },
+      "entrypoint": "lyra_plugins.runners.tree_coverage:run"
+    },
+    {
+      "name": "tree_coverage_raster",
+      "description": "Tree canopy coverage fraction raster, where each pixel is the fraction of its area covered by trees above the height threshold.",
+      "spatial_inputs": {
+        "bounds": "bounds"
+      },
+      "request_schema": {
+        "type": "object",
+        "required": ["bounds"],
+        "properties": {
+          "bounds": {},
+          "crs": {
+            "type": "string",
+            "default": "EPSG:4326"
+          },
+          "scale": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 10
+          },
+          "min_tree_height": {
+            "type": "number",
+            "minimum": 0,
+            "default": 3
+          }
+        },
+        "additionalProperties": false
+      },
+      "output": {
+        "kind": "file",
+        "media_type": "image/tiff",
+        "extensions": [".tif", ".tiff"]
+      },
+      "execution": {
+        "queue": "interactive"
+      },
+      "entrypoint": "lyra_plugins.runners.tree_coverage_raster:run"
+    },
+    {
+      "name": "urbanized_area",
+      "description": "Computes urbanized built-up surface area in square metres for each spatial unit.",
+      "spatial_inputs": {
+        "location": "location"
+      },
+      "request_schema": {
+        "type": "object",
+        "required": ["location"],
+        "properties": {
+          "location": {}
+        },
+        "additionalProperties": false
+      },
+      "output": {
+        "kind": "table",
+        "columns": [
+          {
+            "name": "urbanized_area_m2",
+            "type": "number",
+            "unit": "m2",
+            "description": "Urbanized built-up surface area in square meters."
+          }
+        ]
+      },
+      "execution": {
+        "queue": "interactive"
+      },
+      "entrypoint": "lyra_plugins.runners.urbanized_area:run"
+    }
+  ]
+}
