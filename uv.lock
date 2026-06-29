@@ -1008,7 +1008,7 @@ dev = [
 [[package]]
 name = "lyra-sdk"
 version = "0.1.0"
-source = { git = "https://github.com/RodolfoFigueroa/lyra?subdirectory=packages%2Flyra_sdk&rev=dev#79abf8ac77b0f3f90580d9d1e3f4c4b6f4f0025e" }
+source = { git = "https://github.com/RodolfoFigueroa/lyra?subdirectory=packages%2Flyra_sdk&rev=dev#a2092a45f3afd8f7a455c0ab883bcac760c45232" }
 dependencies = [
     { name = "jsonschema" },
     { name = "pydantic" },
@@ -1017,7 +1017,7 @@ dependencies = [
 [[package]]
 name = "lyra-utils"
 version = "0.1.0"
-source = { git = "https://github.com/RodolfoFigueroa/lyra?subdirectory=packages%2Flyra_utils&rev=dev#79abf8ac77b0f3f90580d9d1e3f4c4b6f4f0025e" }
+source = { git = "https://github.com/RodolfoFigueroa/lyra?subdirectory=packages%2Flyra_utils&rev=dev#a2092a45f3afd8f7a455c0ab883bcac760c45232" }
 dependencies = [
     { name = "earthengine-api" },
     { name = "geopandas" },
