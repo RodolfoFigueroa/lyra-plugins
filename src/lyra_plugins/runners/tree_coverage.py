@@ -1,18 +1,20 @@
-from collections.abc import Mapping
-
+import ee
 from lyra.sdk.context import RunContext
 from lyra.sdk.models import JobEnvelope, TableJobResult
-from lyra.sdk.models.geometry import GeoJSON
+from lyra.utils.ee import reduce_ee_image_over_gdf_factory
 
+from lyra_plugins.functions.tree_coverage import load_tree_coverage_img
 from lyra_plugins.runners.common import parse_location, result_from_column_mapping
 
-
-def calculate_tree_coverage(
-    location: GeoJSON,
-) -> Mapping[str, float | int | str | bool | None]:
-    from lyra_plugins.processors import tree_coverage  # noqa: PLC0415
-
-    return tree_coverage.calculate(location)
+calculate = reduce_ee_image_over_gdf_factory(
+    lambda bbox: (
+        load_tree_coverage_img(bbox)
+        .gte(ee.Number(3))
+        .multiply(ee.image.Image.pixelArea())
+    ),
+    reducer=ee.Reducer.sum(),
+    scale=25,
+)
 
 
 def run(job: JobEnvelope, context: RunContext) -> TableJobResult:
@@ -20,5 +22,5 @@ def run(job: JobEnvelope, context: RunContext) -> TableJobResult:
     context.check_cancelled()
 
     location = parse_location(job)
-    values = calculate_tree_coverage(location)
+    values = calculate(location)
     return result_from_column_mapping(job, location, "tree_coverage_m2", values)

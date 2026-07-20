@@ -1,18 +1,25 @@
-from collections.abc import Mapping
-
+import ee
 from lyra.sdk.context import RunContext
 from lyra.sdk.models import JobEnvelope, TableJobResult
-from lyra.sdk.models.geometry import GeoJSON
+from lyra.utils.ee import reduce_ee_image_over_gdf_factory
 
 from lyra_plugins.runners.common import parse_location, result_from_column_mapping
 
 
-def calculate_urbanized_area(
-    location: GeoJSON,
-) -> Mapping[str, float | int | str | bool | None]:
-    from lyra_plugins.processors import urbanized_area  # noqa: PLC0415
+def load_urbanized_area_img(bbox: ee.Geometry) -> ee.Image:
+    return (
+        ee.ImageCollection("JRC/GHSL/P2023A/GHS_BUILT_S")
+        .select("built_surface")
+        .filterBounds(bbox)
+        .mean()
+    )
 
-    return urbanized_area.calculate(location)
+
+calculate = reduce_ee_image_over_gdf_factory(
+    load_urbanized_area_img,
+    reducer=ee.Reducer.sum(),
+    scale=100,
+)
 
 
 def run(job: JobEnvelope, context: RunContext) -> TableJobResult:
@@ -20,5 +27,5 @@ def run(job: JobEnvelope, context: RunContext) -> TableJobResult:
     context.check_cancelled()
 
     location = parse_location(job)
-    values = calculate_urbanized_area(location)
+    values = calculate(location)
     return result_from_column_mapping(job, location, "urbanized_area_m2", values)
