@@ -7,27 +7,53 @@
   "metrics": [
     {
       "name": "accessibility_jobs",
-      "description": "Computes job accessibility scores for each spatial unit using road network analysis and employment data.",
+      "description": "Computes, for each spatial unit and requested DENUE industry group, the mean exponentially distance- or time-decayed number of estimated workers reachable through the OpenStreetMap road network. Results are weighted job-accessibility scores, not counts of jobs located inside each spatial unit.",
       "entrypoint": "lyra_plugins.runners.accessibility_jobs:run",
       "inputs": {
         "location": {
-          "kind": "location"
+          "kind": "location",
+          "description": "Spatial units for which to calculate job accessibility. Each output row corresponds to one input spatial unit."
         },
         "patterns": {
           "kind": "batch",
           "max_items": 20,
           "label": true,
+          "description": "One or more DENUE industry groups. Each item is an object with: key, a unique identifier matching ^[A-Za-z_][A-Za-z0-9_]*$ that becomes the output suffix jobs_{key}; value, a Python regular expression matched from the start of the six-digit DENUE codigo_act (SCIAN Mexico economic activity code); and optional label, a human-readable group name. Use ^\\d{6}$ to include all valid activity codes and therefore all jobs. For example, ^46\\d{4}$ selects retail establishments, ^61\\d{4}$ educational services, and ^62\\d{4}$ health care and social assistance. Patterns select establishments by industry; the metric then estimates their workers from DENUE employment-size category per_ocu.",
+          "examples": [
+            [
+              {
+                "key": "all_jobs",
+                "value": "^\\d{6}$",
+                "label": "All jobs"
+              }
+            ],
+            [
+              {
+                "key": "retail",
+                "value": "^46\\d{4}$",
+                "label": "Retail jobs"
+              },
+              {
+                "key": "education",
+                "value": "^61\\d{4}$",
+                "label": "Education jobs"
+              }
+            ]
+          ],
           "value": {
             "kind": "string",
             "min_length": 1,
-            "max_length": 256
+            "max_length": 256,
+            "description": "A valid Python regular expression applied with start-anchored matching to DENUE codigo_act, a six-digit SCIAN Mexico activity code. Prefer explicit full-code patterns such as ^\\d{6}$ for all jobs, ^46\\d{4}$ for retail, or ^(61|62)\\d{4}$ for education plus health care and social assistance.",
+            "examples": ["^\\d{6}$", "^46\\d{4}$", "^(61|62)\\d{4}$"]
           }
         },
         "edge_weights": {
           "kind": "enum",
           "values": ["length", "travel_time"],
           "default": "length",
-          "required": false
+          "required": false,
+          "description": "Road-network impedance used for shortest paths, the cutoff, and exponential decay. length uses edge length in meters; travel_time uses free-flow edge travel time in seconds."
         },
         "max_weight": {
           "kind": "json_schema",
@@ -36,26 +62,31 @@
             "exclusiveMinimum": 0
           },
           "default": 1000,
-          "required": false
+          "required": false,
+          "description": "Positive cutoff and exponential-decay radius R, in the unit selected by edge_weights: meters for length or seconds for travel_time. Only jobs with shortest-path impedance d <= R are included, and each is weighted by exp(-d/R). Thus the default 1000 means 1000 meters with length or 1000 seconds (16.67 minutes) with travel_time.",
+          "examples": [1000, 900]
         },
         "network_type": {
           "kind": "enum",
           "values": ["drive", "walk"],
           "default": "drive",
-          "required": false
+          "required": false,
+          "description": "OpenStreetMap road network used to reach jobs. drive uses drivable roads and inferred free-flow driving speeds; walk uses walkable roads and a fixed walking speed of 5 km/h when travel_time is selected."
         },
         "year": {
           "kind": "enum",
           "values": [2020, 2021, 2022, 2023, 2024, 2025],
           "default": 2025,
-          "required": false
+          "required": false,
+          "description": "DENUE establishment-data year used for industry codes, locations, and employment-size categories."
         },
         "month": {
           "kind": "enum",
           "values": [5, 11],
           "nullable": true,
           "default": null,
-          "required": false
+          "required": false,
+          "description": "DENUE release month: 5 for May or 11 for November. When null, the metric uses May for 2025 and November for earlier years."
         }
       },
       "output": {
@@ -66,7 +97,7 @@
             "name": "jobs_{key}",
             "type": "number",
             "unit": "jobs",
-            "description": "Job accessibility for {label}.",
+            "description": "Weighted job accessibility for {label}. DENUE per_ocu employment-size categories are converted to representative worker estimates as follows: 0-5 -> 3, 6-10 -> 8, 11-30 -> 20, 31-50 -> 40, 51-100 -> 75, 101-250 -> 175, and 251 or more -> 500; unrecognized categories do not add workers. Estimates for matching establishments are summed at their nearest road-network nodes. For a mesh origin i, A_i = sum over matching job nodes j with shortest-path impedance d_ij <= R of estimated_workers_j * exp(-d_ij/R), where R is max_weight. The spatial-unit value is the arithmetic mean of A_i across mesh features intersecting that unit. The result is therefore a continuous job-equivalent accessibility score rather than an exact job count; higher values mean more matching employment is reachable with less impedance.",
             "nullable": false
           }
         ]
