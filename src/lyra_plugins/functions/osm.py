@@ -4,50 +4,15 @@ import geopandas as gpd
 import networkx as nx
 import osmnx as ox
 import pandarm as pdna
-from pyproj import CRS, Transformer
+from lyra.sdk.db_types import Bounds
+from pyproj import CRS
 
 from lyra_plugins.constants import WALK_SPEED_KPH
-
-
-def _project_bounds_to_latlon(
-    xmin: float,
-    ymin: float,
-    xmax: float,
-    ymax: float,
-    bounds_crs: str | CRS,
-) -> tuple[float, float, float, float]:
-    """Reproject a bounding box to WGS 84 (EPSG:4326) longitude/latitude.
-
-    If the provided CRS is already WGS 84, the bounds are returned unchanged.
-
-    Args:
-        xmin: Minimum x coordinate of the bounding box.
-        ymin: Minimum y coordinate of the bounding box.
-        xmax: Maximum x coordinate of the bounding box.
-        ymax: Maximum y coordinate of the bounding box.
-        bounds_crs: CRS of the input coordinates, as an EPSG string or
-            ``pyproj.CRS`` object.
-
-    Returns:
-        A tuple ``(xmin, ymin, xmax, ymax)`` reprojected to WGS 84
-        (longitude/latitude).
-    """
-    crs = CRS.from_user_input(bounds_crs)
-    latlon_crs = CRS.from_epsg(4326)
-
-    if crs != latlon_crs:
-        transformer = Transformer.from_crs(crs, latlon_crs, always_xy=True)
-        xmin, ymin = transformer.transform(xmin, ymin)
-        xmax, ymax = transformer.transform(xmax, ymax)
-
-    return xmin, ymin, xmax, ymax
+from lyra_plugins.functions.base import _project_bounds_to_latlon
 
 
 def load_roads_from_bounds(
-    xmin: float,
-    ymin: float,
-    xmax: float,
-    ymax: float,
+    bounds: Bounds,
     *,
     bounds_crs: str | CRS,
     network_type: Literal["drive", "walk"],
@@ -73,15 +38,12 @@ def load_roads_from_bounds(
         - ``edges`` is a DataFrame with columns
           ``["u", "v", "length", "travel_time"]``.
     """
-    xmin, ymin, xmax, ymax = _project_bounds_to_latlon(
-        xmin,
-        ymin,
-        xmax,
-        ymax,
+    bounds = _project_bounds_to_latlon(
+        bounds,
         bounds_crs,
     )
 
-    g = ox.graph_from_bbox(bbox=(xmin, ymin, xmax, ymax), network_type=network_type)
+    g = ox.graph_from_bbox(bbox=tuple(bounds), network_type=network_type)
 
     if network_type == "drive":
         g = ox.add_edge_speeds(g)
@@ -97,10 +59,7 @@ def load_roads_from_bounds(
 
 
 def load_accessibility_net_from_bounds(
-    xmin: float,
-    ymin: float,
-    xmax: float,
-    ymax: float,
+    bounds: Bounds,
     *,
     bounds_crs: str | CRS,
     network_type: Literal["drive", "walk"],
@@ -123,10 +82,7 @@ def load_accessibility_net_from_bounds(
         and ``travel_time`` as edge impedances.
     """
     nodes, edges = load_roads_from_bounds(
-        xmin,
-        ymin,
-        xmax,
-        ymax,
+        bounds,
         bounds_crs=bounds_crs,
         network_type=network_type,
     )
@@ -137,39 +93,3 @@ def load_accessibility_net_from_bounds(
         edges["v"].copy(),
         edges[["length", "travel_time"]].copy(),
     )
-
-
-def load_osm_features_from_bounds(
-    xmin: float,
-    ymin: float,
-    xmax: float,
-    ymax: float,
-    *,
-    bounds_crs: str | CRS,
-    tags: dict[str, bool | str | list[str]],
-) -> gpd.GeoDataFrame:
-    """Load OSM features within a bounding box filtered by tags.
-
-    Reprojects the bounding box to WGS 84, fetches features from OSM via
-    OSMnx, and returns them reprojected to ``bounds_crs``.
-
-    Args:
-        xmin: Minimum x coordinate of the bounding box.
-        ymin: Minimum y coordinate of the bounding box.
-        xmax: Maximum x coordinate of the bounding box.
-        ymax: Maximum y coordinate of the bounding box.
-        bounds_crs: CRS of the input coordinates (output will match this CRS).
-        tags: OSM tag filters as accepted by ``osmnx.features_from_bbox``
-            (e.g. ``{"amenity": "school"}``).
-
-    Returns:
-        A GeoDataFrame of matching OSM features in ``bounds_crs``.
-    """
-    xmin, ymin, xmax, ymax = _project_bounds_to_latlon(
-        xmin,
-        ymin,
-        xmax,
-        ymax,
-        bounds_crs,
-    )
-    return ox.features_from_bbox((xmin, ymin, xmax, ymax), tags=tags).to_crs(bounds_crs)

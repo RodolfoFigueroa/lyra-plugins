@@ -1,24 +1,8 @@
-import os
-import tempfile
-
-import ee
 import geopandas as gpd
 import pandarm as pdna
 import pandas as pd
-import rasterio as rio
-from geedim.image import ImageAccessor
-
-_GEEDIM_TO_GEOTIFF_KWARGS = frozenset(
-    {
-        "driver",
-        "max_cpus",
-        "max_requests",
-        "max_tile_bands",
-        "max_tile_dim",
-        "max_tile_size",
-        "nodata",
-    }
-)
+from lyra.sdk.db_types import Bounds
+from pyproj import CRS, Transformer
 
 
 def get_geometries_osmid(
@@ -37,40 +21,32 @@ def get_geometries_osmid(
     )
 
 
-def download_ee_image(
-    img: ee.Image,
-    bounds: ee.Geometry,
-    fpath: os.PathLike,
-    download_kwargs: dict,
-) -> None:
-    export_kwargs = dict(download_kwargs)
-    if bounds is not None:
-        export_kwargs["region"] = bounds
+def _project_bounds_to_latlon(
+    bounds: Bounds,
+    bounds_crs: str | CRS,
+) -> Bounds:
+    """Reproject a bounding box to WGS 84 (EPSG:4326) longitude/latitude.
 
-    export_kwargs.pop("num_threads", None)
-    unmask_value = export_kwargs.pop("unmask_value", None)
-    if unmask_value is not None:
-        if isinstance(bounds, ee.Geometry):
-            img = img.clip(bounds)
-        elif isinstance(bounds, ee.FeatureCollection):
-            img = img.clipToCollection(bounds)
-        img = img.unmask(unmask_value, sameFootprint=False)
+    If the provided CRS is already WGS 84, the bounds are returned unchanged.
 
-    to_geotiff_kwargs = {"overwrite": export_kwargs.pop("overwrite", True)}
-    for key in _GEEDIM_TO_GEOTIFF_KWARGS:
-        if key in export_kwargs:
-            to_geotiff_kwargs[key] = export_kwargs.pop(key)
+    Args:
+        xmin: Minimum x coordinate of the bounding box.
+        ymin: Minimum y coordinate of the bounding box.
+        xmax: Maximum x coordinate of the bounding box.
+        ymax: Maximum y coordinate of the bounding box.
+        bounds_crs: CRS of the input coordinates, as an EPSG string or
+            ``pyproj.CRS`` object.
 
-    with tempfile.NamedTemporaryFile(suffix=".tif") as tmp:
-        prepared_img = ImageAccessor(img).prepareForExport(**export_kwargs)
-        ImageAccessor(prepared_img).toGeoTIFF(tmp.name, **to_geotiff_kwargs)
+    Returns:
+        A tuple ``(xmin, ymin, xmax, ymax)`` reprojected to WGS 84
+        (longitude/latitude).
+    """
+    crs = CRS.from_user_input(bounds_crs)
+    latlon_crs = CRS.from_epsg(4326)
 
-        with rio.open(tmp.name) as src:
-            profile = src.profile
-            profile.update(
-                count=1,
-                compress="lzw",
-            )
+    if crs != latlon_crs:
+        transformer = Transformer.from_crs(crs, latlon_crs, always_xy=True)
+        xmin, ymin = transformer.transform(bounds.xmin, bounds.ymin)
+        xmax, ymax = transformer.transform(bounds.xmax, bounds.ymax)
 
-            with rio.open(fpath, "w", **profile) as dst:
-                dst.write(src.read(1), 1)
+    return Bounds(xmin, ymin, xmax, ymax)

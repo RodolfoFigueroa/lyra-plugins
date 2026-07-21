@@ -1,92 +1,79 @@
 {
-  "schema_version": 3,
+  "schema_version": 4,
   "plugin": {
     "name": "lyra-plugins",
     "version": "0.1.0"
   },
+  "factory": "lyra_plugins.definitions:create_plugin",
   "metrics": [
     {
       "name": "accessibility_jobs",
-      "description": "Computes, for each spatial unit and requested DENUE industry group, the mean exponentially distance- or time-decayed number of estimated workers reachable through the OpenStreetMap road network. Results are weighted job-accessibility scores, not counts of jobs located inside each spatial unit.",
-      "entrypoint": "lyra_plugins.runners.accessibility_jobs:run",
+      "description": "Computes, for each spatial unit and requested DENUE industry group, the mean number of estimated workers reachable through the OpenStreetMap road network. This number is weighted exponentially and time-decayed or distance-decayed (depending on the edge_weights parameter). Results are weighted job-accessibility scores, not counts of jobs located inside each spatial unit.",
       "inputs": {
         "location": {
-          "kind": "location",
-          "description": "Spatial units for which to calculate job accessibility. Each output row corresponds to one input spatial unit."
+          "kind": "location"
         },
         "patterns": {
           "kind": "batch",
           "max_items": 20,
-          "label": true,
-          "description": "One or more DENUE industry groups. Each item is an object with: key, a unique identifier matching ^[A-Za-z_][A-Za-z0-9_]*$ that becomes the output suffix jobs_{key}; value, a Python regular expression matched from the start of the six-digit DENUE codigo_act (SCIAN Mexico economic activity code); and optional label, a human-readable group name. Use ^\\d{6}$ to include all valid activity codes and therefore all jobs. For example, ^46\\d{4}$ selects retail establishments, ^61\\d{4}$ educational services, and ^62\\d{4}$ health care and social assistance. Patterns select establishments by industry; the metric then estimates their workers from DENUE employment-size category per_ocu.",
-          "examples": [
-            [
-              {
-                "key": "all_jobs",
-                "value": "^\\d{6}$",
-                "label": "All jobs"
-              }
-            ],
-            [
-              {
-                "key": "retail",
-                "value": "^46\\d{4}$",
-                "label": "Retail jobs"
-              },
-              {
-                "key": "education",
-                "value": "^61\\d{4}$",
-                "label": "Education jobs"
-              }
-            ]
-          ],
           "value": {
-            "kind": "string",
-            "min_length": 1,
-            "max_length": 256,
-            "description": "A valid Python regular expression applied with start-anchored matching to DENUE codigo_act, a six-digit SCIAN Mexico activity code. Prefer explicit full-code patterns such as ^\\d{6}$ for all jobs, ^46\\d{4}$ for retail, or ^(61|62)\\d{4}$ for education plus health care and social assistance.",
-            "examples": ["^\\d{6}$", "^46\\d{4}$", "^(61|62)\\d{4}$"]
-          }
-        },
-        "edge_weights": {
-          "kind": "enum",
-          "values": ["length", "travel_time"],
-          "default": "length",
-          "required": false,
-          "description": "Road-network impedance used for shortest paths, the cutoff, and exponential decay. length uses edge length in meters; travel_time uses free-flow edge travel time in seconds."
-        },
-        "max_weight": {
-          "kind": "json_schema",
-          "schema": {
-            "type": "number",
-            "exclusiveMinimum": 0
+            "description": "Regex pattern to match against the SCIAN/NAICS 6-digit code. Only jobs matching the pattern will be counted in the accessibility score.",
+            "examples": [
+              "^31\\d{4}$",
+              "^311\\d{3}$",
+              "^3111\\d{2}$"
+            ],
+            "kind": "string"
           },
-          "default": 1000,
-          "required": false,
-          "description": "Positive cutoff and exponential-decay radius R, in the unit selected by edge_weights: meters for length or seconds for travel_time. Only jobs with shortest-path impedance d <= R are included, and each is weighted by exp(-d/R). Thus the default 1000 means 1000 meters with length or 1000 seconds (16.67 minutes) with travel_time.",
-          "examples": [1000, 900]
-        },
-        "network_type": {
-          "kind": "enum",
-          "values": ["drive", "walk"],
-          "default": "drive",
-          "required": false,
-          "description": "OpenStreetMap road network used to reach jobs. drive uses drivable roads and inferred free-flow driving speeds; walk uses walkable roads and a fixed walking speed of 5 km/h when travel_time is selected."
+          "label": true
         },
         "year": {
+          "description": "Year of the DENUE data to use.",
           "kind": "enum",
-          "values": [2020, 2021, 2022, 2023, 2024, 2025],
-          "default": 2025,
-          "required": false,
-          "description": "DENUE establishment-data year used for industry codes, locations, and employment-size categories."
+          "values": [
+            2020,
+            2021,
+            2022,
+            2023,
+            2024,
+            2025
+          ]
+        },
+        "max_weight": {
+          "description": "Maximum weight (in meters or seconds) for the accessibility calculation. Nodes beyond this weight from the source will not be considered reachable.",
+          "kind": "number",
+          "minimum": 0.0
         },
         "month": {
-          "kind": "enum",
-          "values": [5, 11],
-          "nullable": true,
+          "description": "Month of the DENUE data to use. If not provided, defaults to May for 2025 and November for all other years.",
           "default": null,
           "required": false,
-          "description": "DENUE release month: 5 for May or 11 for November. When null, the metric uses May for 2025 and November for earlier years."
+          "nullable": true,
+          "kind": "enum",
+          "values": [
+            5,
+            11
+          ]
+        },
+        "edge_weights": {
+          "description": "Type of edge weights to use for accessibility calculations. 'length' uses the length of the road segments, while 'time' uses the estimated travel time based on speed limits.",
+          "default": "time",
+          "required": false,
+          "kind": "enum",
+          "values": [
+            "length",
+            "time"
+          ]
+        },
+        "network_type": {
+          "description": "Type of network to use for accessibility calculations.",
+          "default": "drive",
+          "required": false,
+          "kind": "enum",
+          "values": [
+            "drive",
+            "walk"
+          ]
         }
       },
       "output": {
@@ -96,371 +83,9 @@
             "source": "patterns",
             "name": "jobs_{key}",
             "type": "number",
-            "unit": "jobs",
-            "description": "Weighted job accessibility for {label}. DENUE per_ocu employment-size categories are converted to representative worker estimates as follows: 0-5 -> 3, 6-10 -> 8, 11-30 -> 20, 31-50 -> 40, 51-100 -> 75, 101-250 -> 175, and 251 or more -> 500; unrecognized categories do not add workers. Estimates for matching establishments are summed at their nearest road-network nodes. For a mesh origin i, A_i = sum over matching job nodes j with shortest-path impedance d_ij <= R of estimated_workers_j * exp(-d_ij/R), where R is max_weight. The spatial-unit value is the arithmetic mean of A_i across mesh features intersecting that unit. The result is therefore a continuous job-equivalent accessibility score rather than an exact job count; higher values mean more matching employment is reachable with less impedance.",
+            "unit": "dimensionless",
+            "description": "Accessibility score derived from the number of reachable workers in the DENUE dataset, weighted by distance or time, for the specified SCIAN/NAICS pattern.",
             "nullable": false
-          }
-        ]
-      }
-    },
-    {
-      "name": "accessibility_services",
-      "description": "Computes service accessibility scores for each spatial unit using road network analysis and amenity data.",
-      "entrypoint": "lyra_plugins.runners.accessibility_services:run",
-      "inputs": {
-        "location": {
-          "kind": "location"
-        },
-        "service_filters": {
-          "kind": "batch",
-          "max_items": 20,
-          "label": true,
-          "value": {
-            "kind": "json_schema",
-            "schema": {
-              "type": "object",
-              "required": ["amenities"],
-              "properties": {
-                "amenities": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "enum": [
-                      "salud_hospital",
-                      "salud_consultorio",
-                      "salud_farmacia",
-                      "recreativo_parque",
-                      "recreativo_club",
-                      "recreativo_cine",
-                      "recreativo_otro",
-                      "educacion_guarderia",
-                      "educacion_preescolar",
-                      "educacion_primaria",
-                      "educacion_secundaria",
-                      "educacion_media_superior",
-                      "educacion_superior"
-                    ]
-                  },
-                  "minItems": 1,
-                  "maxItems": 13,
-                  "uniqueItems": true
-                }
-              },
-              "additionalProperties": false
-            }
-          }
-        },
-        "attraction_edge_weights": {
-          "kind": "enum",
-          "values": ["length", "travel_time"],
-          "default": "length",
-          "required": false
-        },
-        "attraction_max_weight": {
-          "kind": "json_schema",
-          "schema": {
-            "type": "number",
-            "exclusiveMinimum": 0
-          },
-          "default": 1000,
-          "required": false
-        },
-        "accessibility_edge_weights": {
-          "kind": "enum",
-          "values": ["length", "travel_time"],
-          "default": "length",
-          "required": false
-        },
-        "accessibility_max_weight": {
-          "kind": "json_schema",
-          "schema": {
-            "type": "number",
-            "exclusiveMinimum": 0
-          },
-          "default": 1000,
-          "required": false
-        },
-        "network_type": {
-          "kind": "enum",
-          "values": ["drive", "walk"],
-          "default": "drive",
-          "required": false
-        },
-        "year": {
-          "kind": "enum",
-          "values": [2020, 2021, 2022, 2023, 2024, 2025],
-          "default": 2025,
-          "required": false
-        },
-        "month": {
-          "kind": "enum",
-          "values": [5, 11],
-          "nullable": true,
-          "default": null,
-          "required": false
-        }
-      },
-      "output": {
-        "kind": "table",
-        "batched_columns": [
-          {
-            "source": "service_filters",
-            "name": "accessibility_{key}",
-            "type": "number",
-            "unit": "ratio",
-            "description": "Service accessibility for {label}.",
-            "nullable": false
-          }
-        ]
-      }
-    },
-    {
-      "name": "accessibility_services_with_public_spaces",
-      "description": "Computes service accessibility scores using caller-provided public-space features.",
-      "entrypoint": "lyra_plugins.runners.accessibility_services_with_public_spaces:run",
-      "inputs": {
-        "location": {
-          "kind": "location"
-        },
-        "public_spaces": {
-          "kind": "location"
-        },
-        "service_filters": {
-          "kind": "batch",
-          "max_items": 20,
-          "label": true,
-          "value": {
-            "kind": "json_schema",
-            "schema": {
-              "type": "object",
-              "required": ["amenities"],
-              "properties": {
-                "amenities": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "enum": [
-                      "salud_hospital",
-                      "salud_consultorio",
-                      "salud_farmacia",
-                      "recreativo_parque",
-                      "recreativo_club",
-                      "recreativo_cine",
-                      "recreativo_otro",
-                      "educacion_guarderia",
-                      "educacion_preescolar",
-                      "educacion_primaria",
-                      "educacion_secundaria",
-                      "educacion_media_superior",
-                      "educacion_superior"
-                    ]
-                  },
-                  "minItems": 1,
-                  "maxItems": 13,
-                  "uniqueItems": true
-                }
-              },
-              "additionalProperties": false
-            }
-          }
-        },
-        "attraction_edge_weights": {
-          "kind": "enum",
-          "values": ["length", "travel_time"],
-          "default": "length",
-          "required": false
-        },
-        "attraction_max_weight": {
-          "kind": "json_schema",
-          "schema": {
-            "type": "number",
-            "exclusiveMinimum": 0
-          },
-          "default": 1000,
-          "required": false
-        },
-        "accessibility_edge_weights": {
-          "kind": "enum",
-          "values": ["length", "travel_time"],
-          "default": "length",
-          "required": false
-        },
-        "accessibility_max_weight": {
-          "kind": "json_schema",
-          "schema": {
-            "type": "number",
-            "exclusiveMinimum": 0
-          },
-          "default": 1000,
-          "required": false
-        },
-        "network_type": {
-          "kind": "enum",
-          "values": ["drive", "walk"],
-          "default": "drive",
-          "required": false
-        },
-        "year": {
-          "kind": "enum",
-          "values": [2020, 2021, 2022, 2023, 2024, 2025],
-          "default": 2025,
-          "required": false
-        },
-        "month": {
-          "kind": "enum",
-          "values": [5, 11],
-          "nullable": true,
-          "default": null,
-          "required": false
-        }
-      },
-      "output": {
-        "kind": "table",
-        "batched_columns": [
-          {
-            "source": "service_filters",
-            "name": "accessibility_{key}",
-            "type": "number",
-            "unit": "ratio",
-            "description": "Service accessibility for {label}.",
-            "nullable": false
-          }
-        ]
-      }
-    },
-    {
-      "name": "temperature",
-      "description": "Average surface temperature in degrees Celsius, derived from Landsat 9 thermal band (Band 10).",
-      "entrypoint": "lyra_plugins.runners.temperature:run",
-      "inputs": {
-        "location": {
-          "kind": "location"
-        },
-        "year": {
-          "kind": "enum",
-          "values": [2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025]
-        },
-        "season": {
-          "kind": "enum",
-          "values": ["spring", "summer", "autumn", "winter"]
-        }
-      },
-      "output": {
-        "kind": "table",
-        "columns": [
-          {
-            "name": "temperature_c",
-            "type": "number",
-            "unit": "degC",
-            "description": "Average land surface temperature in degrees Celsius."
-          }
-        ]
-      }
-    },
-    {
-      "name": "temperature_raster",
-      "description": "Surface temperature raster in degrees Celsius, derived from Landsat 9 thermal band (Band 10).",
-      "entrypoint": "lyra_plugins.runners.temperature_raster:run",
-      "inputs": {
-        "bounds": {
-          "kind": "bounds"
-        },
-        "year": {
-          "kind": "enum",
-          "values": [2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025]
-        },
-        "season": {
-          "kind": "enum",
-          "values": ["spring", "summer", "autumn", "winter"]
-        },
-        "crs": {
-          "kind": "string",
-          "default": "EPSG:4326",
-          "required": false
-        },
-        "scale": {
-          "kind": "integer",
-          "minimum": 1,
-          "default": 30,
-          "required": false
-        }
-      },
-      "output": {
-        "kind": "file",
-        "media_type": "image/tiff",
-        "extensions": [".tif", ".tiff"]
-      }
-    },
-    {
-      "name": "tree_coverage",
-      "description": "Tree canopy coverage fraction, derived from high-resolution aerial imagery.",
-      "entrypoint": "lyra_plugins.runners.tree_coverage:run",
-      "inputs": {
-        "location": {
-          "kind": "location"
-        }
-      },
-      "output": {
-        "kind": "table",
-        "columns": [
-          {
-            "name": "tree_coverage_m2",
-            "type": "number",
-            "unit": "m2",
-            "description": "Tree canopy area in square meters."
-          }
-        ]
-      }
-    },
-    {
-      "name": "tree_coverage_raster",
-      "description": "Tree canopy coverage fraction raster, where each pixel is the fraction of its area covered by trees above the height threshold.",
-      "entrypoint": "lyra_plugins.runners.tree_coverage_raster:run",
-      "inputs": {
-        "bounds": {
-          "kind": "bounds"
-        },
-        "crs": {
-          "kind": "string",
-          "default": "EPSG:4326",
-          "required": false
-        },
-        "scale": {
-          "kind": "integer",
-          "minimum": 1,
-          "default": 10,
-          "required": false
-        },
-        "min_tree_height": {
-          "kind": "number",
-          "minimum": 0,
-          "default": 3,
-          "required": false
-        }
-      },
-      "output": {
-        "kind": "file",
-        "media_type": "image/tiff",
-        "extensions": [".tif", ".tiff"]
-      }
-    },
-    {
-      "name": "urbanized_area",
-      "description": "Computes urbanized built-up surface area in square metres for each spatial unit.",
-      "entrypoint": "lyra_plugins.runners.urbanized_area:run",
-      "inputs": {
-        "location": {
-          "kind": "location"
-        }
-      },
-      "output": {
-        "kind": "table",
-        "columns": [
-          {
-            "name": "urbanized_area_m2",
-            "type": "number",
-            "unit": "m2",
-            "description": "Urbanized built-up surface area in square meters."
           }
         ]
       }
