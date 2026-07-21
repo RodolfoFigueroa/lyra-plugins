@@ -98,7 +98,7 @@ def calculate_for_items(  # noqa: PLR0913
     network_type: Literal["drive", "walk"],
     pattern: str,
     max_weight: float,
-    edge_weights: Literal["length", "time"],
+    edge_weights: Literal["length", "travel_time"],
 ) -> pd.Series:
     if network_type == "drive":
         net_accessibility = nets.drive
@@ -192,8 +192,9 @@ def calculate_aggregate(
         "edge_weights": Input(
             description=(
                 "Type of edge weights to use for accessibility calculations. "
-                "'length' uses the length of the road segments, while 'time' uses "
-                "the estimated travel time based on speed limits."
+                "'length' uses the length of the road segments, while 'travel_time' "
+                "uses the estimated travel time based on speed limits (or walking "
+                "speed if walking network is used)."
             ),
         ),
         "max_weight": Input(
@@ -229,7 +230,7 @@ def metric(  # noqa: PLR0913
     year: Literal[2020, 2021, 2022, 2023, 2024, 2025],
     max_weight: float,
     month: Literal[5, 11] | None = None,
-    edge_weights: Literal["length", "time"] = "time",
+    edge_weights: Literal["length", "travel_time"] = "travel_time",
     network_type: Literal["drive", "walk"] = "drive",
     *,
     context: RunContext,
