@@ -92,4 +92,5 @@ def load_accessibility_net_from_bounds(
         edges["u"].copy(),
         edges["v"].copy(),
         edges[["length", "travel_time"]].copy(),
+        crs=bounds_crs,
     )
