@@ -240,6 +240,8 @@ def metric(  # noqa: PLR0913
 
     try:
         nets = get_networks(bounds)
+        context.report_message("Loaded networks")
+
         denue = get_denue(
             bounds,
             context.db,
@@ -247,22 +249,29 @@ def metric(  # noqa: PLR0913
             month=month,
             nets=nets,
         )
-        mesh = get_mesh(bounds, context.db, nets=nets)
+        context.report_message("Loaded DENUE data")
 
-        series = [
-            calculate_for_items(
-                batch_item.key,
-                df=df,
-                denue=denue,
-                mesh=mesh,
-                nets=nets,
-                network_type=network_type,
-                pattern=batch_item.value,
-                max_weight=max_weight,
-                edge_weights=edge_weights,
+        mesh = get_mesh(bounds, context.db, nets=nets)
+        context.report_message("Loaded mesh data")
+
+        series: list[pd.Series] = []
+        for i, batch_item in enumerate(patterns):
+            series.append(
+                calculate_for_items(
+                    batch_item.key,
+                    df=df,
+                    denue=denue,
+                    mesh=mesh,
+                    nets=nets,
+                    network_type=network_type,
+                    pattern=batch_item.value,
+                    max_weight=max_weight,
+                    edge_weights=edge_weights,
+                )
             )
-            for batch_item in patterns
-        ]
+            context.report_progress(
+                stage="batch_items", current=i, total=len(patterns), unit="items"
+            )
     except (TypeError, ValueError, ValidationError) as exc:
         return FailedJobResult(
             job_id=context.job_id, error={"type": "validation", "message": str(exc)}
