@@ -150,12 +150,6 @@ def calculate_for_items(  # noqa: PLR0913
     )
 
 
-def calculate_aggregate(
-    results: list[tuple[str, pd.Series]],
-) -> dict:
-    return pd.concat([result for _, result in results], axis=1).to_dict(orient="index")
-
-
 @metric(
     name="accessibility_jobs",
     description=(
