@@ -44,6 +44,14 @@
           "kind": "number",
           "minimum": 0.0
         },
+        "edge_weights": {
+          "description": "Type of edge weights to use for accessibility calculations. 'length' uses the length of the road segments, while 'travel_time' uses the estimated travel time based on speed limits (or walking speed if walking network is used).",
+          "kind": "enum",
+          "values": [
+            "length",
+            "travel_time"
+          ]
+        },
         "month": {
           "description": "Month of the DENUE data to use. If not provided, defaults to May for 2025 and November for all other years.",
           "default": null,
@@ -53,16 +61,6 @@
           "values": [
             5,
             11
-          ]
-        },
-        "edge_weights": {
-          "description": "Type of edge weights to use for accessibility calculations. 'length' uses the length of the road segments, while 'travel_time' uses the estimated travel time based on speed limits (or walking speed if walking network is used).",
-          "default": "travel_time",
-          "required": false,
-          "kind": "enum",
-          "values": [
-            "length",
-            "travel_time"
           ]
         },
         "network_type": {

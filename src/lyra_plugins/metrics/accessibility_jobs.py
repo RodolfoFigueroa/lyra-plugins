@@ -1,4 +1,4 @@
-from typing import Literal, NamedTuple
+from typing import Literal
 
 import geopandas as gpd
 import numpy as np
@@ -30,31 +30,13 @@ from lyra_plugins.functions.osm import load_accessibility_net_from_bounds
 WANTED_CRS = "EPSG:6372"
 
 
-class Networks(NamedTuple):
-    drive: pdna.Network
-    walk: pdna.Network
-
-
-def get_networks(bounds: Bounds) -> Networks:
-    return Networks(
-        **{
-            network_type: load_accessibility_net_from_bounds(
-                bounds,
-                bounds_crs=WANTED_CRS,
-                network_type=network_type,
-            )
-            for network_type in ("drive", "walk")
-        }
-    )
-
-
 def get_denue(
     bounds: Bounds,
     db: LyraDB,
     *,
     year: Literal[2020, 2021, 2022, 2023, 2024, 2025] = 2025,
     month: Literal[5, 11] | None,
-    nets: Networks,
+    net_accessibility: pdna.Network,
 ) -> gpd.GeoDataFrame:
     if month is None:
         month = 5 if year == 2025 else 11
@@ -65,8 +47,7 @@ def get_denue(
         .assign(num_workers=lambda x: x["per_ocu"].map(PER_OCU_TO_NUM_WORKERS_MAP))
         .drop(columns=["per_ocu"])
         .assign(
-            osmid_drive=lambda df: get_geometries_osmid(df, nets.drive),  # ty: ignore[invalid-argument-type]
-            osmid_walk=lambda df: get_geometries_osmid(df, nets.walk),  # ty: ignore[invalid-argument-type]
+            osmid=lambda df: get_geometries_osmid(df, net_accessibility),  # ty: ignore[invalid-argument-type]
         )
     )
 
@@ -74,16 +55,12 @@ def get_denue(
 def get_mesh(
     bounds: Bounds,
     db: LyraDB,
-    nets: Networks,
+    net_accessibility: pdna.Network,
 ) -> gpd.GeoDataFrame:
     return db.load_mesh_from_bounds(bounds)[["geometry"]].assign(
-        osmid_drive=lambda df: get_geometries_osmid(
+        osmid=lambda df: get_geometries_osmid(
             df,  # ty:ignore[invalid-argument-type]
-            nets.drive,
-        ),
-        osmid_walk=lambda df: get_geometries_osmid(
-            df,  # ty:ignore[invalid-argument-type]
-            nets.walk,
+            net_accessibility,
         ),
     )
 
@@ -94,26 +71,18 @@ def calculate_for_items(  # noqa: PLR0913
     df: gpd.GeoDataFrame,
     denue: gpd.GeoDataFrame,
     mesh: gpd.GeoDataFrame,
-    nets: Networks,
-    network_type: Literal["drive", "walk"],
+    net_accessibility: pdna.Network,
     pattern: str,
     max_weight: float,
     edge_weights: Literal["length", "travel_time"],
 ) -> pd.Series:
-    if network_type == "drive":
-        net_accessibility = nets.drive
-        osmid_col = "osmid_drive"
-    elif network_type == "walk":
-        net_accessibility = nets.walk
-        osmid_col = "osmid_walk"
-
     denue_osmid_group = (
         denue.loc[lambda df: df["codigo_act"].str.match(pattern)]
-        .groupby(osmid_col)["num_workers"]
+        .groupby("osmid")["num_workers"]
         .sum()
     )
 
-    source_nodes = mesh[osmid_col].dropna().unique()
+    source_nodes = mesh["osmid"].dropna().unique()
     nodes_in_range = net_accessibility.nodes_in_range(
         source_nodes,
         max_weight,
@@ -135,7 +104,7 @@ def calculate_for_items(  # noqa: PLR0913
 
     mesh_joined = mesh.merge(
         accessibility,
-        left_on=osmid_col,
+        left_on="osmid",
         right_index=True,
         how="left",
     )
@@ -144,7 +113,7 @@ def calculate_for_items(  # noqa: PLR0913
         df[["geometry"]]
         .reset_index(names="orig_index")
         .sjoin(mesh_joined, how="left")
-        .drop(columns=[osmid_col, "index_right", "geometry"])
+        .drop(columns=["osmid", "index_right", "geometry"])
         .groupby("orig_index")
         .mean()[f"jobs_{item_key}"]
     )
@@ -223,8 +192,8 @@ def metric(  # noqa: PLR0913
     patterns: list[BatchItem[str]],
     year: Literal[2020, 2021, 2022, 2023, 2024, 2025],
     max_weight: float,
+    edge_weights: Literal["length", "travel_time"],
     month: Literal[5, 11] | None = None,
-    edge_weights: Literal["length", "travel_time"] = "travel_time",
     network_type: Literal["drive", "walk"] = "drive",
     *,
     context: RunContext,
@@ -233,7 +202,11 @@ def metric(  # noqa: PLR0913
     bounds = Bounds(*df["geometry"].buffer(10_000).total_bounds)
 
     try:
-        nets = get_networks(bounds)
+        net_accessibility = load_accessibility_net_from_bounds(
+            bounds,
+            bounds_crs=WANTED_CRS,
+            network_type=network_type,
+        )
         context.report_message("Loaded networks")
 
         denue = get_denue(
@@ -241,11 +214,11 @@ def metric(  # noqa: PLR0913
             context.db,
             year=year,
             month=month,
-            nets=nets,
+            net_accessibility=net_accessibility,
         )
         context.report_message("Loaded DENUE data")
 
-        mesh = get_mesh(bounds, context.db, nets=nets)
+        mesh = get_mesh(bounds, context.db, net_accessibility=net_accessibility)
         context.report_message("Loaded mesh data")
 
         series: list[pd.Series] = []
@@ -256,8 +229,7 @@ def metric(  # noqa: PLR0913
                     df=df,
                     denue=denue,
                     mesh=mesh,
-                    nets=nets,
-                    network_type=network_type,
+                    net_accessibility=net_accessibility,
                     pattern=batch_item.value,
                     max_weight=max_weight,
                     edge_weights=edge_weights,
