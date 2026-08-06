@@ -24,8 +24,10 @@ from lyra.utils.geometry import convert_geojson_to_gdf
 from pydantic import ValidationError
 
 from lyra_plugins.constants import PER_OCU_TO_NUM_WORKERS_MAP
-from lyra_plugins.functions.base import get_geometries_osmid
-from lyra_plugins.functions.osm import load_accessibility_net_from_bounds
+from lyra_plugins.functions.osm import (
+    get_geometries_osmid,
+    load_accessibility_net_from_bounds,
+)
 
 WANTED_CRS = "EPSG:6372"
 

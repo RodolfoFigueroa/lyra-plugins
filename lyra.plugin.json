@@ -87,6 +87,34 @@
           }
         ]
       }
+    },
+    {
+      "name": "tree_coverage",
+      "description": "Computes the area covered by trees meeting the requested minimum height for each input polygon, using the Meta canopy-height Earth Engine image.",
+      "inputs": {
+        "location": {
+          "kind": "location"
+        },
+        "min_tree_height": {
+          "description": "Minimum canopy height in metres counted as tree coverage.",
+          "default": 3,
+          "required": false,
+          "kind": "integer",
+          "minimum": 0
+        }
+      },
+      "output": {
+        "kind": "table",
+        "columns": [
+          {
+            "name": "tree_coverage_m2",
+            "type": "number",
+            "unit": "m2",
+            "description": "Area in square metres covered by trees meeting the minimum height threshold.",
+            "nullable": false
+          }
+        ]
+      }
     }
   ]
 }
