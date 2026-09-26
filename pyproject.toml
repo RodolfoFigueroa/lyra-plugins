@@ -1,7 +1,7 @@
 [project]
 name = "lyra-plugins"
 version = "0.1.0"
-description = "Add your description here"
+description = "Lyra indicators for surface temperature, tree coverage, and urbanization"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
