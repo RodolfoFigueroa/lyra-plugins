@@ -2,12 +2,12 @@
   "factory": "lyra_plugins.definitions:create_plugin",
   "metrics": [
     {
-      "description": "Seasonal mean Landsat 9 land-surface temperature at 30 m resolution.",
+      "description": "Compute seasonal mean land-surface temperature in Celsius per polygon. Use Landsat 9 Collection 2 Tier 1 Level 2 (LANDSAT/LC09/C02/T1_L2), mask dilated clouds, clouds, and cloud shadows, average images over the selected season, then take a spatial mean at 30 m reduction resolution. This estimates surface temperature rather than air temperature. Cloud masking and missing source temperature data limit usable observations.",
       "name": "temperature",
       "output": {
         "columns": [
           {
-            "description": "Mean land-surface temperature after cloud masking.",
+            "description": "Spatial mean of seasonal mean land-surface temperature in degrees Celsius. Null denotes an unavailable polygon reduction, including a polygon without usable temperature pixels.",
             "name": "temperature_c",
             "nullable": true,
             "type": "number",
@@ -270,7 +270,7 @@
             "additionalProperties": false,
             "properties": {
               "season": {
-                "description": "Meteorological season: spring March-May, summer June-August, autumn September-November, winter December-February.",
+                "description": "Meteorological season: spring March-May, summer June-August, autumn September-November, winter December-February. The selected period includes the first day and excludes the last calendar day of the season.",
                 "enum": [
                   "spring",
                   "summer",
@@ -281,7 +281,7 @@
                 "type": "string"
               },
               "year": {
-                "description": "Season year; winter starts in December of the preceding year.",
+                "description": "Calendar year from 2022 through 2025. Winter starts in December of the preceding year and ends in February of this year.",
                 "enum": [
                   2022,
                   2023,
@@ -342,12 +342,12 @@
       }
     },
     {
-      "description": "Area meeting the minimum canopy height, reduced at 1 m resolution.",
+      "description": "Sum the area meeting a minimum estimated canopy height per polygon. Use the Meta/WRI canopy-height collection projects/sat-io/open-datasets/facebook/meta-canopy-height, taking the pixelwise maximum across intersecting images and summing qualifying pixel areas at 1 m reduction resolution. The source imagery spans 2009-2020, predominantly 2018-2020, so the result represents a canopy baseline assembled from imagery of different dates. Source: https://gee-community-catalog.org/projects/meta_trees/",
       "name": "tree_coverage",
       "output": {
         "columns": [
           {
-            "description": "Area with canopy height at least min_tree_height.",
+            "description": "Sum of pixel area with estimated canopy height at least min_tree_height, in square metres. Zero can reflect below-threshold or masked source pixels and does not establish an observed absence of trees. Null means the polygon reduction returned no value.",
             "name": "tree_coverage_m2",
             "nullable": true,
             "type": "number",
@@ -610,7 +610,7 @@
             "additionalProperties": false,
             "properties": {
               "min_tree_height": {
-                "description": "Minimum canopy height in metres, included in the coverage area.",
+                "description": "Minimum estimated canopy height in metres. Pixels equal to or above this threshold contribute their area; lower pixels do not.",
                 "title": "Min Tree Height",
                 "type": "integer"
               }
@@ -664,16 +664,16 @@
       }
     },
     {
-      "description": "First GHSL epoch from 1975 through 2025 when built-up surface reaches 20% of the polygon area, reduced at 100 m resolution.",
+      "description": "Estimate the first GHSL epoch when built-up surface reaches at least 20% of each polygon's area. Sum estimated built-up surface from JRC/GHSL/P2023A/GHS_BUILT_S at 100 m reduction resolution for each five-year epoch from 1975 through 2025.\n\nThe result is the earliest qualifying calendar-year epoch, not an exact development date or elapsed duration. A result of 1975 may reflect development before the first supported epoch. GHSL includes spatial and temporal interpolation or extrapolation.",
       "name": "urbanization_year",
       "output": {
         "columns": [
           {
-            "description": "First qualifying GHSL calendar year; null if no epoch qualifies.",
+            "description": "Earliest five-year GHSL epoch from 1975 through 2025 meeting the 20% built-up-area threshold. Null means no epoch qualified; it is not a zero year or proof that the polygon was never developed.",
             "name": "urbanization_year",
             "nullable": true,
             "type": "integer",
-            "unit": "year"
+            "unit": "calendar_year"
           }
         ],
         "kind": "table"
@@ -967,12 +967,12 @@
       }
     },
     {
-      "description": "GHSL built-up surface summed for an epoch at 100 m resolution.",
+      "description": "Sum estimated built-up surface area per polygon for a GHSL epoch. Use JRC/GHSL/P2023A/GHS_BUILT_S and a spatial sum at 100 m reduction resolution. GHSL epochs include spatial and temporal interpolation or extrapolation.",
       "name": "urbanized_area",
       "output": {
         "columns": [
           {
-            "description": "Total built-up surface in the selected GHSL epoch.",
+            "description": "Total estimated built-up surface in square metres for the selected epoch. Zero is a computed zero total; null denotes an unavailable polygon reduction.",
             "name": "urbanized_area_m2",
             "nullable": true,
             "type": "number",
@@ -1235,7 +1235,7 @@
             "additionalProperties": false,
             "properties": {
               "year": {
-                "description": "GHSL built-up surface epoch.",
+                "description": "GHSL P2023A calendar-year epoch from 1975 through 2025 in five-year increments, selecting the built-up surface estimate for that epoch.",
                 "enum": [
                   1975,
                   1980,

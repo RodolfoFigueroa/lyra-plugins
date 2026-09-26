@@ -8,7 +8,7 @@ dependencies = [
     "earthengine-api>=1.7.25",
     "geedim>=2.0.0",
     "geopandas>=1.1.3",
-    "lyra-sdk>=0.4.0",
+    "lyra-sdk>=0.14.0",
     "lyra-utils>=0.2.0",
     "networkx>=3.6.1",
     "numpy>=2.4.6",
@@ -25,6 +25,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.uv.sources]
+# Check the lyra-authoring-2 baseline when updating these sources.
 lyra-sdk = { git = "https://github.com/RodolfoFigueroa/lyra", subdirectory = "packages/lyra_sdk" }
 lyra-utils = { git = "https://github.com/RodolfoFigueroa/lyra", subdirectory = "packages/lyra_utils" }
 
@@ -52,7 +53,13 @@ packages = ["src/lyra_plugins"]
 "lyra.plugin.json" = "share/lyra/plugins/lyra-plugins/lyra.plugin.json"
 
 [tool.hatch.build.targets.sdist]
-include = ["src/lyra_plugins", "lyra.plugin.json", "pyproject.toml", "README.md", "LICENSE"]
+include = [
+    "src/lyra_plugins",
+    "lyra.plugin.json",
+    "pyproject.toml",
+    "README.md",
+    "LICENSE",
+]
 
 [tool.lyra]
 factory = "lyra_plugins.definitions:create_plugin"
