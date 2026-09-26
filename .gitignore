@@ -222,3 +222,6 @@ __marimo__/
 # Extra
 .zed
 .DS_Store
+*.ipynb
+*.gpkg
+scratch_accessibility_results/
